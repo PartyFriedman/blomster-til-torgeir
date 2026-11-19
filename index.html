@@ -27,7 +27,7 @@
 
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);}
   body{
-    background:radial-gradient(120% 80% at 50% 42%, var(--bg2) 0%, var(--bg) 62%);
+    background:var(--bg);             /* gradienten ligger i SVG-en, så film og kode er like */
     color:var(--cream);
     font-family:"Bebas Neue","Oswald","Arial Narrow",sans-serif;
     -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
@@ -59,6 +59,8 @@
   }
   @media (prefers-reduced-motion: reduce){ #grain{animation:none;} }
   #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;}
+  /* Del 2 som film på mobil – plasseres så filmens viewBox treffer #stage nøyaktig */
+  #growthVideo{position:fixed;left:0;top:0;z-index:3;pointer-events:none;object-fit:fill;background:var(--bg);opacity:0;visibility:hidden;}
   #replayBtn{
     position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:6;
     font:inherit;font-size:17px;letter-spacing:.28em;line-height:1;padding:11px 20px 9px calc(20px + .28em);
@@ -80,7 +82,11 @@
       <path d="M140,620 C140,632 152,638 152,648 C152,670 122,686 122,722 C122,760 144,788 168,790 L232,790 C256,788 278,760 278,722 C278,686 248,670 248,648 C248,638 260,632 260,620 Z"/>
     </clipPath>
     <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
+    <radialGradient id="bgGrad" gradientUnits="userSpaceOnUse" cx="200" cy="330" r="297" gradientTransform="translate(200 330) scale(1 1.444) translate(-200 -330)">
+      <stop offset="0" stop-color="#3A2B1F"/><stop offset="1" stop-color="#2A1E16"/>
+    </radialGradient>
   </defs>
+  <rect x="-1000" y="-1000" width="2400" height="2800" fill="url(#bgGrad)"/>
 
   <g id="world">
   <!-- Dybdeplan bak sluttplanet: stripebuer (3D-noder) og bånd som går langt bak -->
@@ -185,6 +191,7 @@
   </g>
 </svg>
 <canvas id="fx" aria-hidden="true"></canvas>
+<video id="growthVideo" muted playsinline webkit-playsinline preload="auto" aria-hidden="true"></video>
 <button id="replayBtn" type="button">Spill igjen</button>
 
 <div id="intro" class="overlay">
@@ -217,6 +224,7 @@ const OUTRO_FALLBACK = 39.95;
 const params = new URLSearchParams(location.search);
 const MODE = params.get('scene');            // utvikling: card | vase | pour | still
 const speed = parseFloat(params.get('speed')) || 1;
+const DEBUG = params.has('debug');
 gsap.globalTimeline.timeScale(speed);
 
 const $ = s => document.querySelector(s);
@@ -438,6 +446,7 @@ function bringJug(){
       jugActive = true;
       say('Dra eller trykk på kanna for å vanne');
       if (!G.tl) buildGrowth(OUTRO_FALLBACK);   // bygg veksten nå, så crossfaden ikke hakker
+      cueVideo();                               // filmen står klar på 2,0 s
       invite = gsap.timeline({ repeat: -1, repeatDelay: 2.4, delay: 1.2 })
         .to(jug, { a: 9, duration: 0.45, ease: EASE, onUpdate: renderJug })
         .to(jug, { a: 0, duration: 0.6, ease: EASE, onUpdate: renderJug });
@@ -531,6 +540,7 @@ gsap.ticker.add((time, dtMs) => {
   const dt = Math.min(dtMs, 50) / 1000 * speed;
   const rate = filled ? 0 : clamp((jug.a - 28) / 30, 0, 1) * 0.5;
   const pouring = rate > 0;
+  if (pouring && !G.swayStopped){ G.swayStopped = true; stopSway(); }   // stilkene i ro før veksten (lik filmen)
   wavePhase += dt * (pouring ? 7 : 2);
   if (pouring){
     if (stream.u0 >= stream.u1){ stream.u0 = 0; stream.u1 = 0; }
@@ -545,9 +555,10 @@ gsap.ticker.add((time, dtMs) => {
     stream.u0 = Math.min(stream.u1, stream.u0 + dt * 4);
     if (stream.u0 >= stream.u1){ stream.u0 = stream.u1 = 0; }
   }
-  if (jugActive || fill > 0) drawWater(pouring);
+  if ((jugActive || fill > 0) && !V.on) drawWater(pouring);
   drawStream();
   growthTick(dt);
+  videoTick();
 });
 
 /* Vasen er full: crossfade til outroen, vekst-timelinen starter */
@@ -1249,7 +1260,7 @@ function renderFx(dt){
     }
   }
   if (fx.pollen >= 0.01){
-    const now = performance.now() / 1000;
+    const now = G.fxTime !== undefined ? G.fxTime : performance.now() / 1000;
     c.globalAlpha = fx.pollen * 0.8;
     for (let ci = 0; ci < MOTE_COLS.length; ci++){
       c.fillStyle = MOTE_COLS[ci]; c.beginPath();
@@ -1304,8 +1315,69 @@ function growthTick(dt){
     return;
   }
   G.t = clamp(raw, 0, G.dur);
+  // På mobil tar filmen over ved 2,0 s (kanna er da ute av bildet, og timelinen er lik)
+  if (V.use && V.ok && G.t >= VIDEO_T0 && G.t < VIDEO_T0 + 2 && vid.readyState >= 2){ startVideo(); return; }
   G.tl.time(G.t);
   renderGrowth(dt);
+}
+
+/* ---------- Del 2 som forhåndsrendret film på mobil (video/vekst.mp4, rendres med render.js) ---------- */
+const VIDEO_T0 = 2.0, VIDEO_FPS = 30, vid = $('#growthVideo');
+const V = {
+  use: params.get('video') ? params.get('video') === '1' : (matchMedia('(pointer: coarse)').matches && innerHeight / innerWidth > 1.3),
+  ok: true, on: false, primed: false
+};
+if (MODE === 'render' || MODE === 'still') V.use = false;
+if (V.use){ vid.muted = true; vid.src = 'video/vekst.mp4'; }
+vid.addEventListener('error', () => { V.ok = false; if (V.on) videoFallback(); });
+function placeVideo(){
+  const W = innerWidth, H = innerHeight, s = Math.min(W / 400, H / 800);
+  Object.assign(vid.style, { left: `${(W - 400 * s) / 2 - 60 * s}px`, top: `${(H - 800 * s) / 2 - 70 * s}px`, width: `${520 * s}px`, height: `${940 * s}px` });
+}
+addEventListener('resize', placeVideo); placeVideo();
+function primeVideo(){              // kalles i et klikk: låser opp avspilling og buffring på iOS
+  if (!V.use || V.primed) return;
+  V.primed = true;
+  const p = vid.play();
+  if (p && p.then) p.then(() => { vid.pause(); cueVideo(); }).catch(() => {});
+}
+function cueVideo(){ if (V.use && V.ok){ try { vid.pause(); vid.currentTime = VIDEO_T0; } catch (e) {} } }
+function startVideo(){
+  V.on = true; G.on = false; V.lastVT = -1; V.stallSince = null;
+  vid.playbackRate = 1;
+  if (Math.abs(vid.currentTime - G.t) > 0.05) vid.currentTime = G.t;
+  gsap.set(vid, { autoAlpha: 1 });
+  const p = vid.play(); if (p && p.catch) p.catch(videoFallback);
+  gsap.set('#stage', { visibility: 'hidden' }); clearFx(); fxDirty = false;
+  console.info(`Film tar over ved ${G.t.toFixed(2)} s`);
+}
+function videoFallback(){           // filmen feilet: tilbake til levende kode der vi er
+  V.on = false; V.ok = false;
+  gsap.set(vid, { autoAlpha: 0 }); gsap.set('#stage', { visibility: 'visible' });
+  G.on = true;
+}
+function videoTick(){
+  if (!V.on) return;
+  const t = (growthNow() - G.start) * (G.clock === 'perf' ? speed : 1);
+  if (vid.ended || t >= G.dur - 0.05){ endVideo(); return; }
+  // Vakt: står filmen fast (buffring, dekoder) i over 1 s mens musikken går, tar koden over der vi er
+  if (vid.currentTime !== V.lastVT){ V.lastVT = vid.currentTime; V.stallSince = null; }
+  else if (V.stallSince == null) V.stallSince = t;
+  else if (t - V.stallSince > 1.0){ console.info('Filmen står fast – kode tar over'); videoFallback(); return; }
+  if (!vid.paused && vid.readyState >= 2){
+    const drift = vid.currentTime - t;   // filmtid = vekst-tid
+    if (Math.abs(drift) > 0.5){ vid.currentTime = t; vid.playbackRate = 1; }
+    else vid.playbackRate = Math.abs(drift) > 0.03 ? 1 - clamp(drift * 0.5, -0.1, 0.1) : 1;
+    if (DEBUG && t - (V.logT || 0) > 2){ V.logT = t; console.info(`synk t=${t.toFixed(1)} avvik=${(drift * 1000).toFixed(0)} ms`); }
+  }
+}
+function endVideo(){                // sluttbildet tegnes skarpt i vektor under filmen, så fades filmen ut
+  V.on = false;
+  G.t = G.dur; G.tl.time(G.dur); renderGrowth(0);
+  gsap.set('#stage', { visibility: 'visible' });
+  gsap.to(vid, { autoAlpha: 0, duration: 0.3, ease: EASE, onComplete: () => vid.pause() });
+  G.on = true; G.idle = true;
+  console.info('Film ferdig – sluttbildet er vektor igjen');
 }
 
 /* «Spill igjen» */
@@ -1316,7 +1388,8 @@ replayBtn.addEventListener('click', () => {
   G.on = false;
   gsap.to(replayBtn, { autoAlpha: 0, duration: 0.4, ease: EASE });
   gsap.to(['#stage', '#fx'], { opacity: 0, duration: 0.7, ease: EASE, onComplete(){
-    G.t = 0; G.tl.time(0); vineDrive(); resetFx(); startSway(); renderGrowth(0);
+    cueVideo(); gsap.set(vid, { autoAlpha: 0 }); gsap.set('#stage', { visibility: 'visible' });
+    G.t = 0; G.tl.time(0); vineDrive(); resetFx(); renderGrowth(0);
     startGrowth(Sound.replay());
     gsap.to(['#stage', '#fx'], { opacity: 1, duration: 1.0, ease: EASE });
   } });
@@ -1340,12 +1413,26 @@ openBtn.addEventListener('click', async () => {
   Sound.unlock();
   openBtn.setAttribute('aria-busy', 'true');
   Sound.startIntro();
+  primeVideo();
   gsap.to('#intro', { autoAlpha: 0, duration: 0.9, ease: EASE });
   playBouquet().delay(0.5);
 });
 
 if (MODE === 'still'){                         // sluttbildet = vekst-timelinen på siste frame
   enterGrowthState(); buildGrowth(OUTRO_FALLBACK); G.t = OUTRO_FALLBACK; G.tl.time(OUTRO_FALLBACK); vineDrive(); renderGrowth(0);
+} else if (MODE === 'render'){                 // render.js: én frame om gangen, deterministisk, uten korn
+  enterGrowthState(); buildGrowth(OUTRO_FALLBACK);
+  ['#wear', '#grain', '#hint', '#replayBtn', '#intro'].forEach(s => { $(s).style.display = 'none'; });
+  svg.setAttribute('viewBox', '-60 -70 520 940'); sizeFx();
+  gsap.ticker.sleep();
+  resetFx(); G.lastZ = cam.z;
+  window.__frame = t => {
+    const dt = 1 / VIDEO_FPS;
+    wavePhase += dt * 2; drawWater(false);
+    G.t = t; G.fxTime = t; G.tl.time(t); renderGrowth(t === 0 ? 0 : dt);
+    return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  };
+  window.__dur = OUTRO_FALLBACK;
 } else if (MODE === 'grow'){                   // ?scene=grow&t=24 starter veksten ved 24 s
   enterGrowthState(); startSway();
   const t0 = parseFloat(params.get('t')) || 0;
