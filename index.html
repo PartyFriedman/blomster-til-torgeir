@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2A1E16">
+<meta name="theme-color" content="#18130F">
 <title>Blomster til Torgeir</title>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,18 +12,18 @@
 <style>
   /* ---------- Låst palett (fra kortet og logoen) ---------- */
   :root{
-    --bg:#2A1E16; --bg2:#3A2B1F;
+    --bg:#18130F; --bg2:#26201A;
     --kraft:#A97C52; --kraft-d:#7A5537; --kraft-l:#C49B6E;
     --cream:#EAD3A8; --paper:#F1E6D0;
     --stem:#A88B62; --leaf:#6E5A3C;
     --orange:#DE6A2A; --coral:#E9785A; --mustard:#E3A63B; --red:#A2301F;
-    --accent:#2E8C8E; /* den ene kalde aksenten: petrol */
+    --accent:#49B2CF; /* den ene kalde aksenten: petrol */
     --lw:2.2px;       /* låst linjetykkelse */
     --cam:1;          /* kamerazoom kompenseres, så linjen holder seg lik */
     color-scheme:dark;
   }
-  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#2A1E16; } }
-  :root[data-theme="dark"]{ --bg:#2A1E16; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#18130F; } }
+  :root[data-theme="dark"]{ --bg:#18130F; }
 
   html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);}
   body{
@@ -39,6 +39,7 @@
   .tap{cursor:pointer;}
 
   .overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:0 16px;text-align:center;}
+  #swoosh{position:absolute;inset:0;width:100%;height:100%;z-index:-1;}
   .eyebrow{margin:0;font-size:17px;letter-spacing:.32em;color:var(--kraft-l);padding-left:.32em;}
   .small{margin:0;font-size:14px;letter-spacing:.28em;color:var(--kraft-l);opacity:.7;padding-left:.28em;}
   #openBtn{
@@ -51,7 +52,7 @@
   #openBtn[aria-busy="true"]{opacity:.6;}
   /* Trykkfølelse: slitasje (blekkmangel, sprekker, slitte kanter) + levende filmkorn */
   #wear,#grain{position:fixed;inset:0;pointer-events:none;z-index:5;}
-  #wear{background:url(assets/wear.png) center/cover no-repeat;opacity:.42;}
+  #wear{background:url(assets/wear.png) center/cover no-repeat;opacity:.55;}
   #grain{inset:-128px;background:url(assets/grain.png) 0 0/128px 128px repeat;opacity:.42;animation:grain .9s steps(6) infinite;}
   @keyframes grain{
     0%{transform:translate(0,0)} 17%{transform:translate(-37px,21px)} 33%{transform:translate(18px,-44px)}
@@ -83,7 +84,7 @@
     </clipPath>
     <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
     <radialGradient id="bgGrad" gradientUnits="userSpaceOnUse" cx="200" cy="330" r="297" gradientTransform="translate(200 330) scale(1 1.444) translate(-200 -330)">
-      <stop offset="0" stop-color="#3A2B1F"/><stop offset="1" stop-color="#2A1E16"/>
+      <stop offset="0" stop-color="#2B231C"/><stop offset="1" stop-color="#18130F"/>
     </radialGradient>
   </defs>
   <rect x="-1000" y="-1000" width="2400" height="2800" fill="url(#bgGrad)"/>
@@ -100,7 +101,7 @@
     </g>
 
     <!-- Vannstråle (bak buketten, så den renner ned i vasen) -->
-    <g id="stream"><path id="streamBody" fill="#2E8C8E" fill-opacity=".55" d=""/><path id="streamLine" class="ln" stroke="#EAD3A8" stroke-opacity=".7" d=""/></g>
+    <g id="stream"><path id="streamBody" fill="#49B2CF" fill-opacity=".55" d=""/><path id="streamLine" class="ln" stroke="#EAD3A8" stroke-opacity=".7" d=""/></g>
 
     <!-- Kransen, bakre lag (ranker og blader) -->
     <g id="wreathBack" visibility="hidden"></g>
@@ -146,7 +147,7 @@
 
     <!-- Vann i vasen -->
     <g id="water" clip-path="url(#vaseClip)" visibility="hidden">
-      <path id="waterBody" fill="#5FA8A6" fill-opacity=".2" d=""/>
+      <path id="waterBody" fill="#8FCFDF" fill-opacity=".2" d=""/>
       <path id="waterLine" class="ln" stroke="#EAD3A8" stroke-opacity=".75" d=""/>
       <g id="drops"></g>
     </g>
@@ -164,7 +165,7 @@
       <circle r="78" fill="transparent"/>
       <path d="M30,-30 C60,-32 64,18 33,26 L34,16 C52,12 50,-20 31,-20 Z" fill="#C49B6E"/>
       <path d="M-28,-42 L28,-42 C33,-20 39,8 34,38 C32,46 24,50 14,50 L-14,50 C-24,50 -32,46 -34,38 C-39,8 -34,-18 -31,-30 C-37,-36 -42,-44 -48,-50 C-40,-48 -33,-45 -28,-42 Z" fill="#EAD3A8"/>
-      <ellipse cx="0" cy="-41" rx="27" ry="3.5" fill="#2E8C8E" fill-opacity=".7"/>
+      <ellipse cx="0" cy="-41" rx="27" ry="3.5" fill="#49B2CF" fill-opacity=".7"/>
       <path class="ln" stroke="#A97C52" d="M-36,4 C-12,9 12,9 37,4 M-36,13 C-12,18 12,18 37,13"/>
     </g>
 
@@ -178,13 +179,13 @@
           <rect x="-131" y="-197.5" width="262" height="395" fill="none" class="ln" stroke="#C49B6E"/>
           <path class="ln" stroke="#7A5537" d="M0,70 C-3,30 3,-10 0,-60 M0,20 C-14,10 -22,-4 -24,-18 C-10,-14 -2,-4 0,10 M0,-10 C12,-20 20,-32 22,-46 C8,-42 2,-32 0,-20 M0,-60 C-8,-64 -10,-74 -6,-82 C2,-80 4,-70 0,-60 C4,-70 12,-74 16,-70 C14,-62 6,-58 0,-60"/>
           <text x="0" y="126" text-anchor="middle" font-family="Bebas Neue, Arial Narrow, sans-serif" font-size="22" letter-spacing="6" fill="#7A5537">TIL TORGEIR</text>
-          <rect id="coverShade" x="-145" y="-211.5" width="290" height="423" fill="#2A1E16" opacity="0"/>
+          <rect id="coverShade" x="-145" y="-211.5" width="290" height="423" fill="#18130F" opacity="0"/>
         </g>
       </g>
     </g>
   </g>
   <!-- Blomstene er 3D-noder som flyr fra dybden til plassen sin i kransen -->
-  <g id="nodes"><g id="bloomNodes"></g><g id="accentNodes"></g></g>
+  <g id="nodes"><g id="morphNodes"></g><g id="bloomNodes"></g><g id="accentNodes"></g></g>
   <g id="pollenPlane"></g>
   <!-- Bånd som skyter forbi kamera -->
   <g id="ribFront"></g>
@@ -195,6 +196,7 @@
 <button id="replayBtn" type="button">Spill igjen</button>
 
 <div id="intro" class="overlay">
+  <svg id="swoosh" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
   <p class="eyebrow">Til Torgeir Waldemar</p>
   <button id="openBtn" type="button">Åpne</button>
   <p class="small">Skru på lyden</p>
@@ -214,10 +216,14 @@ gsap.registerPlugin(DrawSVGPlugin);
 const EASE = 'power3.inOut', EASE_OUT = 'power3.out', EASE_IN = 'power3.in', LOOP = 'sine.inOut';
 gsap.defaults({ ease: EASE });
 const C = {
-  bg:'#2A1E16', kraft:'#A97C52', kraftD:'#7A5537', kraftL:'#C49B6E', cream:'#EAD3A8', paper:'#F1E6D0',
-  stem:'#A88B62', leaf:'#6E5A3C', orange:'#DE6A2A', coral:'#E9785A', mustard:'#E3A63B', red:'#A2301F',
-  redD:'#5E2116', accent:'#2E8C8E'
+  bg:'#18130F', kraft:'#A97C52', kraftD:'#7A5537', kraftL:'#C49B6E', cream:'#EAD3A8', paper:'#F1E6D0',
+  stem:'#A88B62', leaf:'#6E5A3C', orange:'#EE9330', coral:'#E5579A', mustard:'#EFCB3C', red:'#E2483B',
+  redD:'#7A2230', accent:'#49B2CF',
+  pink:'#E5579A', purple:'#7E5BAE', blue:'#3F6CB4', cyan:'#49B2CF', green:'#5BAE6B', yellow:'#EFCB3C'
 };
+// Regnbuen fra VHS-coveret, ytterst til innerst
+const RAINBOW = [C.pink, C.purple, C.blue, C.cyan, C.green, C.yellow, C.orange, C.red];
+const RAINBOW_REV = RAINBOW.slice().reverse();
 const AUDIO = { intro:'music/peace_song_intro.mp3', outro:'music/Peace_song_outro.mp3' };
 const OUTRO_FALLBACK = 39.95;
 
@@ -708,9 +714,9 @@ function buildWreath(){
   ['#haloNodes', '#bloomNodes', '#accentNodes', '#pollenPlane'].forEach(s => { $(s).innerHTML = ''; });
   const W = { halo: [], vines: [], leaves: [], branches: [], flowers: [], pollen: [] };
   // Stripebuer rundt kransen (70-talls tonebånd i brunt) – hver bue er en egen 3D-node
-  const HALO = ['#6A4B30', '#5A4029', '#4B3523', '#3E2C1F'];
+  const HALO = RAINBOW;
   HALO.forEach((col, k) => {
-    const pts = []; for (let i = 0; i <= 40; i++) pts.push(ringPt(140 + 260 * i / 40, 40 + k * 7));
+    const pts = []; for (let i = 0; i <= 40; i++) pts.push(ringPt(140 + 260 * i / 40, 40 + k * 5.5));
     const g = el('g', {}, $('#haloNodes'));
     el('path', { class: 'ln halo', d: smooth(pts), stroke: col }, g);
     W.halo.push({ el: g, z: 0, k: 1, op: 1 });
@@ -765,6 +771,15 @@ function buildWreath(){
 
   // Logo i midten
   const LW = 190, LH = LW * 1237 / 820;
+  // 70vibe: regnbue-ekstrudering bak logoen, som bokstavene på VHS-coveret
+  const lmask = el('mask', { id: 'logoShape', maskUnits: 'userSpaceOnUse', x: -200, y: -200, width: 800, height: 1200, style: 'mask-type:alpha' }, svg.querySelector('defs'));
+  el('image', { href: 'assets/logo.png', x: f1(200 - LW / 2), y: f1(322 - LH / 2), width: LW, height: f1(LH) }, lmask);
+  const echoG = el('g', { id: 'logoEcho', visibility: 'hidden' }, front);
+  W.echo = RAINBOW_REV.map((col, i) => {
+    const g = el('g', {}, echoG);
+    el('rect', { x: f1(200 - LW / 2 - 4), y: f1(322 - LH / 2 - 4), width: f1(LW + 8), height: f1(LH + 8), fill: col, mask: 'url(#logoShape)' }, g);
+    return { g, k: RAINBOW.length - i };
+  });
   W.logo = el('image', { id: 'logo', href: 'assets/logo.png', x: f1(200 - LW / 2), y: f1(322 - LH / 2), width: LW, height: f1(LH) }, front);
   W.logoBox = { x: 200 - LW / 2, y: 322 - LH / 2, w: LW, h: LH };
 
@@ -774,7 +789,7 @@ function buildWreath(){
     if (Math.hypot(x - bx, y - by) > 4) W.branches.push({ p, el: el('path', { class: 'ln', d: `M${f1(bx)},${f1(by)} Q${f1((bx + x) / 2 + (rnd() - 0.5) * 8)},${f1((by + y) / 2 + (rnd() - 0.5) * 8)} ${f1(x)},${f1(y)}`, stroke: C.stem }, branches) });
     const rot = f1(rnd() * 360);
     const g = el('g', { class: `flower ${type}`, transform: `translate(${f1(x)},${f1(y)}) rotate(${rot})` }, $(type === 'accent' ? '#accentNodes' : '#bloomNodes'));
-    Flowers[type](g, R, cols);
+    Flowers[type](g, R, type === 'accent' ? null : type === 'ranunculus' ? PAL_RINGS[idx % 8] : type === 'poppy' ? [C.red, C.pink] : PAL_WARM[idx % 8]);
     W.flowers.push({ el: g, type, R, idx, p, xf: f1(x), yf: f1(y), rf: rot, n: { x: f1(x), y: f1(y), z: 0, r: rot } });
   });
   // Pollen (statisk i sluttbildet)
@@ -787,9 +802,9 @@ function buildWreath(){
 }
 
 /* ---------- Maksimalistiske lag rundt heltene (egen rng, så heltegeometrien står fast) ---------- */
-const PAL_WARM = [[C.orange, C.mustard], [C.coral, C.orange], [C.red, C.coral], [C.mustard, C.red], [C.coral, C.mustard], [C.red, C.orange]];
-const PAL_RINGS = [[C.red, C.orange, C.mustard, C.coral], [C.mustard, C.coral, C.red, C.orange], [C.orange, C.red, C.coral, C.mustard], [C.coral, C.mustard, C.orange, C.red]];
-const LEAF_COLS = [C.leaf, '#86693F', C.kraftD, '#5C4A31'];
+const PAL_WARM = [[C.pink, C.yellow], [C.orange, C.red], [C.cyan, C.blue], [C.green, C.yellow], [C.purple, C.pink], [C.red, C.orange], [C.yellow, C.orange], [C.blue, C.cyan]];
+const PAL_RINGS = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [0, 1, 2, 3].map(k => RAINBOW[(i + k * 2) % 8]));
+const LEAF_COLS = ['#3F8F5C', C.green, '#2E6B55', '#7DBB5A'];
 const BERRY_COLS = [C.red, C.redD, '#C2452A'];
 function leafLance(g, L, w, col){ el('path', { d: `M0,0 Q${f1(L / 2)},${f1(-w)} ${f1(L)},0 Q${f1(L / 2)},${f1(w)} 0,0Z`, fill: col }, g); el('path', { class: 'ln', d: `M0,0 L${f1(L * .85)},0`, stroke: C.stem }, g); }
 function leafFrond(g, L, col){
@@ -825,7 +840,7 @@ function buildExtras(W, back, front){
       L.push([200 + RING.rx * t * Math.cos(a0 + w), 330 + RING.ry * t * Math.sin(a0 + w)]);
       R.unshift([200 + RING.rx * t * Math.cos(a1 + w), 330 + RING.ry * t * Math.sin(a1 + w)]);
     }
-    el('path', { d: 'M' + L.concat(R).map(p => `${f1(p[0])},${f1(p[1])}`).join(' L') + 'Z', fill: i % 4 ? '#36281D' : '#3F2E21' }, rays);
+    el('path', { d: 'M' + L.concat(R).map(p => `${f1(p[0])},${f1(p[1])}`).join(' L') + 'Z', fill: ['#2E1A2C', '#1E1E34', '#14292E', '#1A2A1C', '#2C2914', '#30200F', '#301616'][(i / 2) % 7] }, rays);
   }
   $('#haloNodes').insertBefore(rays, $('#haloNodes').firstChild);
   W.rays = { el: rays, z: 0, k: 1, op: 1, rot: 0 };
@@ -898,7 +913,7 @@ function invEase(p){ let lo = 0, hi = 1; for (let i = 0; i < 28; i++){ const m =
 const vineTime = p => VINE_T0 + VINE_D * invEase(p);
 
 // Bånd gjennom rommet: 3D-kurver (u = 0…1) som tegnes som komethaler
-const RIB_WARM = [C.mustard, C.orange, C.coral, C.red], RIB_BROWN = [C.kraftD, C.kraft, C.stem, C.kraftL], RIB_TEAL = [C.accent];
+const RIB_WARM = RAINBOW, RIB_BROWN = RAINBOW_REV, RIB_TEAL = [C.cyan, C.blue, C.purple];
 function helix(o){ return u => { const a = o.w * u * Math.PI * 2 + o.ph, r = o.A * (o.grow ? 0.25 + u : 1);
   return [o.p[0] + o.d[0] * u + r * Math.cos(a), o.p[1] + o.d[1] * u + r * Math.sin(a) * 0.3, o.p[2] + o.d[2] * u + r * Math.sin(a)]; }; }
 function streamer(o){ return u => { const a = o.w * u * Math.PI * 2 + o.ph;
@@ -945,7 +960,22 @@ const RIBBONS = [
   { t: 22.2, dur: 3.2, tail: .5, cols: RIB_BROWN, front: true, f: swirl({ a0: 90, turn: -420, spread: .9, z0: 2600 }) },
   { t: 23.0, dur: 3.0, tail: .5, cols: RIB_WARM,  front: true, f: swirl({ a0: 270, turn: 380, spread: .6, z0: 2000 }) }
 ];
-const RIB_GAP = 4.2, RIB_N = 44;
+// 70vibe: en hel sverm av regnbuebånd i tillegg – fra dypet, forbi kamera og rundt kransen
+{
+  const rr = rng(77);
+  for (let i = 0; i < 30; i++){
+    const act = i < 12 ? 2 : i < 23 ? 3 : 4, cols = rr() < 0.5 ? RAINBOW : RAINBOW_REV;
+    if (act === 2) RIBBONS.push({ t: 2.6 + i * 0.62, dur: 2.4 + rr(), tail: .55, cols, front: rr() < 0.7, f: streamer({
+      x0: 200 + (rr() - .5) * 700, x1: 205 + (rr() - .5) * 280, y0: 470 + (rr() - .5) * 800, y1: 450 + (rr() - .5) * 320,
+      z0: 2400 + rr() * 800, z1: -1700, A: 60 + rr() * 110, w: (rr() < .5 ? -1 : 1) * (0.4 + rr() * 0.9), ph: rr() * 6 }) });
+    else if (act === 3) RIBBONS.push({ t: 12.7 + (i - 12) * 0.74, dur: 2.2 + rr() * 0.8, tail: .55, cols, front: true, f: streamer({
+      x0: 200 + (rr() - .5) * 600, x1: 200 + (rr() - .5) * 240, y0: 290 + (rr() - .5) * 700, y1: 290 + (rr() - .5) * 260,
+      z0: 3400 + rr() * 800, z1: 650, A: 70 + rr() * 120, w: (rr() < .5 ? -1 : 1) * (0.5 + rr() * 0.9), ph: rr() * 6 }) });
+    else RIBBONS.push({ t: 21.1 + (i - 23) * 0.55, dur: 2.6 + rr() * 0.6, tail: .5, cols, front: true, f: swirl({
+      a0: rr() * 360, turn: (rr() < .5 ? -1 : 1) * (300 + rr() * 220), spread: 0.5 + rr() * 0.8, z0: 1800 + rr() * 1400 }) });
+  }
+}
+const RIB_GAP = 3.6, RIB_N = 56;
 function renderRibbon(r){
   const u1 = Math.min(r.q, 1), u0 = Math.max(0, r.q - r.tail);
   if (u1 - u0 < 0.004){ if (r.on){ r.paths.forEach(p => p.setAttribute('d', '')); r.on = false; } return; }
@@ -953,17 +983,20 @@ function renderRibbon(r){
   const P = [];
   for (let i = 0; i <= RIB_N; i++){ const w = r.f(u0 + (u1 - u0) * i / RIB_N); P.push(proj(w[0], w[1], w[2])); }
   const n = r.cols.length, ds = new Array(n).fill('');
-  let pen = false;
+  let pen = false, gsum = 0, gn = 0;
   for (let i = 0; i <= RIB_N; i++){
     const p = P[i];
     if (!p || Math.abs(p[0]) > 4000 || Math.abs(p[1]) > 4000){ pen = false; continue; }
     const a = P[i - 1] || p, b = P[i + 1] || p;
     let dx = b[0] - a[0], dy = b[1] - a[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
-    const gap = clamp(RIB_GAP * p[2], 3.4, 40);    // stripene spriker når båndet nærmer seg – linjen er fortsatt låst
+    const gap = clamp(RIB_GAP * p[2], 3.0, 60);    // båndet blir bredere når det nærmer seg kamera
+    gsum += gap; gn++;
     for (let k = 0; k < n; k++){ const o = (k - (n - 1) / 2) * gap; ds[k] += `${pen ? 'L' : 'M'}${f1(p[0] - dy * o)},${f1(p[1] + dx * o)}`; }
     pen = true;
   }
-  r.paths.forEach((path, k) => path.setAttribute('d', ds[k]));
+  // trykte bånd som på VHS-coveret: tykke striper med smale mørke mellomrom
+  const sw = f1(clamp((gn ? gsum / gn : 3) * 0.74, 1.8, 44));
+  r.paths.forEach((path, k) => { path.setAttribute('d', ds[k]); path.style.strokeWidth = sw + 'px'; });
 }
 
 // Hvilken akt hver blomst blomstrer i (WREATH-indekser)
@@ -1002,7 +1035,7 @@ function bloom(tl, fl, t0, big){
 
 function setupBuds(){
   if (G.buds) return;
-  const defs = svg.querySelector('defs'), WARM = [C.coral, C.orange, C.mustard, C.red, C.coral, C.orange, C.mustard];
+  const defs = svg.querySelector('defs'), WARM = [C.pink, C.orange, C.yellow, C.red, C.cyan, C.purple, C.green];
   G.buds = [...document.querySelectorAll('#stems .bud')].filter(b => b.querySelector('.budfill')).map((g, i) => {
     const src = g.querySelector('.budfill'), id = 'budClip' + i;
     const clip = el('circle', { cx: 0, cy: -10, r: 0 }, el('clipPath', { id, clipPathUnits: 'userSpaceOnUse' }, defs));
@@ -1053,14 +1086,40 @@ function vineDrive(){
   updateMask();
 }
 
+/* 70vibe: morfende regnbueblomster – blomst → stjerne → sol → TV-skjerm → kløver → rose, ett skifte per slag */
+const MORPHS = [
+  th => 0.58 + 0.42 * Math.pow(Math.abs(Math.cos(th * 4)), 0.7),
+  th => 0.4 + 0.6 * Math.pow(Math.abs(Math.cos(th * 2.5)), 6),
+  th => 0.86 + 0.14 * Math.sin(th * 14),
+  th => 0.92 / Math.pow(Math.pow(Math.abs(Math.cos(th)), 4) + Math.pow(Math.abs(Math.sin(th)), 4), 0.25),
+  th => 0.22 + 0.78 * Math.pow(Math.abs(Math.cos(th * 2)), 0.45),
+  th => 0.72 + 0.28 * Math.cos(th * 6)
+];
+const MORPH_N = 84, MORPH_LAYERS = 7;
+function morphPath(fa, fb, e, R){
+  let d = '';
+  for (let i = 0; i < MORPH_N; i++){ const th = i / MORPH_N * Math.PI * 2, r = R * (fa(th) * (1 - e) + fb(th) * e); d += `${i ? 'L' : 'M'}${f1(Math.cos(th) * r)},${f1(Math.sin(th) * r)}`; }
+  return d + 'Z';
+}
+function placeMorph(m){
+  const n = m.n, p = n.k > 0.002 && G.t >= m.tIn - 0.05 ? proj(n.x, n.y, n.z) : null;
+  if (!p){ if (m.vis !== false){ m.el.setAttribute('visibility', 'hidden'); m.vis = false; } return; }
+  if (m.vis !== true){ m.el.setAttribute('visibility', 'visible'); m.vis = true; }
+  m.el.setAttribute('transform', `translate(${f2(p[0])},${f2(p[1])}) scale(${(p[2] * n.k).toFixed(4)}) rotate(${f1(n.r + G.t * m.spin)})`);
+  // formen skifter i andre halvdel av hvert slag og lander på neste slag
+  const ph = Math.max(0, (G.t - 2.5) / 0.8 + m.off), i = Math.floor(ph), e = easeMain(clamp((ph - i - 0.45) / 0.55, 0, 1));
+  const fa = MORPHS[(i + m.s) % MORPHS.length], fb = MORPHS[(i + 1 + m.s) % MORPHS.length];
+  m.layers.forEach((L, k) => { L.setAttribute('d', morphPath(fa, fb, e, m.R * (1 - k * 0.13))); L.setAttribute('fill', RAINBOW[(k + i + m.c) % 8]); });
+}
+
 function buildGrowth(dur){
   const W = G.W = buildWreath();
   W.pulses = W.halo.map(h => { const g = h.el.cloneNode(true); $('#haloNodes').appendChild(g); return { el: g, z: 0, k: 1, op: 0 }; });
   // Bakgrunnsbuer langt inne i rommet (stripebuen fra inspirasjonen) – gir parallaksen, borte før klimaks
-  const BD = ['#7A5537', '#6A4B30', '#5A4029', '#4B3523'];
+  const BD = RAINBOW;
   W.backdrops = [
-    [1800, (u, k) => { const a = Math.PI + Math.PI * u, r = 700 + k * 18; return [200 + r * Math.cos(a), 900 + r * Math.sin(a)]; }],
-    [3200, (u, k) => [-900 + 2200 * u, 300 + 500 * Math.sin(u * Math.PI * 1.6 + 0.4) + k * 26]]
+    [1800, (u, k) => { const a = Math.PI + Math.PI * u, r = 700 + k * 16; return [200 + r * Math.cos(a), 900 + r * Math.sin(a)]; }],
+    [3200, (u, k) => [-900 + 2200 * u, 300 + 500 * Math.sin(u * Math.PI * 1.6 + 0.4) + k * 22]]
   ].map(([z, fn]) => {
     const g = el('g', {}, $('#haloNodes'));
     BD.forEach((col, k) => { const pts = []; for (let i = 0; i <= 48; i++) pts.push(fn(i / 48, k)); el('path', { class: 'ln', d: smooth(pts), stroke: col }, g); });
@@ -1081,9 +1140,19 @@ function buildGrowth(dur){
     const t = act2 ? 2.9 + i * 0.75 : 13.4 + (i - 10) * 0.55;
     G.transients.push({ el: g, type, R, t, tb: t, n: { ...s0, r: tr() * 360, op: 1 } });
   }
+  // Morfende regnbueblomster i rommet; i klimaks flyr de inn og blir til kransens blomster
+  const mr = rng(31), heroes = W.flowers.filter(f => f.type !== 'accent');
+  G.morphs = [];
+  for (let i = 0; i < 20; i++){
+    const act2 = i < 11, g = el('g', {}, $('#morphNodes'));
+    const layers = []; for (let k = 0; k < MORPH_LAYERS; k++) layers.push(el('path', { d: '' }, g));
+    const s0 = act2 ? pickIn(205, 470, -950, 420, 1100) : pickIn(200, 295, 960, 220, 1000);
+    G.morphs.push({ el: g, layers, R: 26 + mr() * 38, tIn: act2 ? 2.7 + i * 0.68 : 13.0 + (i - 11) * 0.85, s: i % MORPHS.length, c: i % 8, off: mr(), spin: (mr() - .5) * 40,
+      hero: heroes[(i * 7) % heroes.length], n: { ...s0, r: mr() * 360, k: 0 } });
+  }
   // Sjokkbølger på de store anslagene
   const WAVE_T = [2.5, 10.0, 12.6, 21.0, 24.4];
-  G.waves = WAVE_T.map(() => { const g = el('g', { visibility: 'hidden' }, $('#ribFront')); [C.mustard, C.orange, C.coral, C.red].forEach((c, k) => el('circle', { class: 'ln', r: 40 + k * 7, stroke: c }, g)); return { el: g, k: 0.3, op: 0 }; });
+  G.waves = WAVE_T.map(() => { const g = el('g', { visibility: 'hidden' }, $('#ribFront')); RAINBOW.forEach((c, k) => el('circle', { class: 'ln', r: 40 + k * 6, stroke: c, style: 'stroke-width:4.4px' }, g)); return { el: g, k: 0.3, op: 0 }; });
   scatter(W); setupBuds(); setupMask(W);
   const caps = setupCapillaries();
   RIBBONS.forEach(r => {
@@ -1113,10 +1182,10 @@ function buildGrowth(dur){
   tl.to(cam, { x: 200, y: 250, z: 300, roll: 2, duration: 2.6, ease: EASE_IN }, 10);
   tl.to(fx, { streak: 1, shapes: 1, duration: 1.4, ease: EASE }, 10.8);
   // Akt 3b – blomstring på flere plan
-  tl.to(cam, { x: 205, y: 280, z: 900, roll: 5, duration: 2.4, ease: EASE_OUT }, 12.6);
+  tl.to(cam, { x: 205, y: 280, z: 900, roll: 12, duration: 2.4, ease: EASE_OUT }, 12.6);
   tl.to(fx, { streak: 0.5, pollen: 1, duration: 1.6, ease: EASE }, 13);
-  tl.to(cam, { x: 232, y: 290, z: 960, roll: -5, duration: 3, ease: EASE }, 15);
-  tl.to(cam, { x: 178, y: 300, z: 1000, roll: 3, duration: 3, ease: EASE }, 18);
+  tl.to(cam, { x: 232, y: 290, z: 960, roll: -14, duration: 3, ease: EASE }, 15);
+  tl.to(cam, { x: 178, y: 300, z: 1000, roll: 9, duration: 3, ease: EASE }, 18);
   // Akt 4 – klimaks: kameraet trekker seg ut og lander eksakt på sluttutsnittet
   tl.call(stopSway, null, 21);
   tl.to(cam, { x: 200, y: 400, z: -F, roll: 0, duration: 5.5, ease: EASE }, 21);
@@ -1143,9 +1212,21 @@ function buildGrowth(dur){
     tl.to(fl.n, { r: fl.n.r + 160, z: fl.n.z - 260, duration: 9, ease: EASE }, fl.t);
     tl.to(fl.n, { op: 0, duration: 1.2, ease: EASE }, 20.8 + (fl.t % 1.2));
   });
+  // Morfene: popper inn, driver og spinner, flyr til en heltblomst og forsvinner idet den lander
+  G.morphs.forEach(m => {
+    tl.fromTo(m.n, { k: 0 }, { k: 1, duration: 0.7, ease: EASE_OUT }, m.tIn);
+    tl.to(m.n, { z: m.n.z - 280, duration: Math.min(9, 20.8 - m.tIn), ease: EASE }, m.tIn);
+    const land = vineTime(m.hero.p) + 0.35, start = Math.max(20.9, land - 2.4);
+    tl.to(m.n, { x: m.hero.xf, y: m.hero.yf, z: 0, duration: land - start, ease: EASE }, start);
+    tl.to(m.n, { k: 0, duration: 0.45, ease: EASE_IN }, land - 0.45);
+  });
+  // Regnbue-ekstruderingen skyves ut bak logoen når den er hel
+  G.echo = { d: 0 };
+  tl.set('#logoEcho', { visibility: 'visible' }, 26.2);
+  tl.fromTo(G.echo, { d: 0 }, { d: 1.0, duration: 1.4, ease: EASE_OUT }, 26.2);
   // Sjokkbølger, slag-kick og solstråler som spinner seg på plass
   WAVE_T.forEach((t, i) => { const w = G.waves[i]; tl.set(w, { k: 0.3, op: 1 }, t); tl.to(w, { k: 7, op: 0, duration: 1.5, ease: EASE_OUT }, t); });
-  for (let b = 0; 2.5 + b * 0.8 < 26; b++){ const t = 2.5 + b * 0.8; tl.set(cam, { kick: b % 4 === 0 ? 0.06 : 0.03 }, t); tl.to(cam, { kick: 0, duration: 0.6, ease: EASE_OUT }, t); }
+  for (let b = 0; 2.5 + b * 0.8 < 26; b++){ const t = 2.5 + b * 0.8; tl.set(cam, { kick: b % 4 === 0 ? 0.09 : 0.045 }, t); tl.to(cam, { kick: 0, duration: 0.6, ease: EASE_OUT }, t); }
   tl.fromTo(W.rays, { op: 0 }, { op: 1, duration: 3, ease: EASE }, 2.5);
   tl.fromTo(W.rays, { rot: -70 }, { rot: 0, duration: 24, ease: EASE }, 2.5);
   // Akt 5 – pust: pollen faller, stripebuene pulserer utover på anslaget
@@ -1195,7 +1276,9 @@ function renderGrowth(dt){
   placePlane($('#pollenPlane'), 0);
   const W = G.W;
   placeNode(W.rays); W.backdrops.forEach(placeNode); W.halo.forEach(placeNode); W.pulses.forEach(placeNode);
+  G.morphs.forEach(placeMorph);
   G.transients.forEach(placeFlower); W.flowers.forEach(placeFlower);
+  if (G.echo && G.echo.d !== G.echoD){ G.echoD = G.echo.d; W.echo.forEach(e => e.g.setAttribute('transform', `translate(${f1(e.k * G.echo.d * 0.85)},${f1(e.k * G.echo.d)})`)); }
   G.waves.forEach(placeWave);
   RIBBONS.forEach(renderRibbon);
   if (dt > 0){ const v = (cam.z - G.lastZ) / dt; G.velZ += (v - G.velZ) * Math.min(1, dt * 8); }
@@ -1207,7 +1290,7 @@ function renderGrowth(dt){
 const fxCv = $('#fx'), fxCtx = fxCv.getContext('2d');
 let fxM = { a: 1, e: 0, f: 0 }, fxDpr = 1, fxDirty = false, streaks = [], motes = [], shapes = [];
 // 70-tallsformer og blader som virvler gjennom rommet: 0 skive, 1 ring, 2 halvsirkel, 3 stjerne, 4 striper, 5 blad
-const SHAPE_COLS = [C.mustard, C.orange, C.coral, C.red, C.kraftL, C.cream, C.orange, C.mustard, C.accent];
+const SHAPE_COLS = RAINBOW.concat([C.cream]);
 function drawShape(c, t, s){
   c.beginPath();
   if (t === 0){ c.arc(0, 0, s, 0, Math.PI * 2); c.fill(); }
@@ -1217,7 +1300,7 @@ function drawShape(c, t, s){
   else if (t === 4){ for (let k = -1; k <= 1; k++){ c.moveTo(-s, k * s * 0.45); c.lineTo(s, k * s * 0.45); } c.stroke(); }
   else { c.moveTo(-s, 0); c.quadraticCurveTo(0, -s * 0.55, s, 0); c.quadraticCurveTo(0, s * 0.55, -s, 0); c.fill(); }
 }
-const STREAK_COLS = [C.cream, C.cream, C.mustard, C.orange, C.accent], MOTE_COLS = [C.mustard, C.mustard, C.cream];
+const STREAK_COLS = RAINBOW.concat([C.cream, C.cream]), MOTE_COLS = [C.yellow, C.cream, C.pink, C.cyan];
 function sizeFx(){
   fxDpr = Math.min(2, window.devicePixelRatio || 1);
   fxCv.width = Math.round(innerWidth * fxDpr); fxCv.height = Math.round(innerHeight * fxDpr);
@@ -1227,9 +1310,9 @@ addEventListener('resize', sizeFx); sizeFx();
 function spawnP(p, d0, d1){ const d = d0 + Math.random() * (d1 - d0); p.z = cam.z + d; p.x = cam.x + (Math.random() - 0.5) * d * 0.62; p.y = cam.y + (Math.random() - 0.5) * d * 1.15; }
 function clearFx(){ fxCtx.setTransform(1, 0, 0, 1, 0, 0); fxCtx.clearRect(0, 0, fxCv.width, fxCv.height); }
 function resetFx(){
-  streaks = Array.from({ length: 110 }, (_, i) => { const p = { c: i % STREAK_COLS.length }; spawnP(p, 60, 2800); return p; });
-  motes = Array.from({ length: 150 }, (_, i) => { const p = { c: i % MOTE_COLS.length, r: 0.7 + Math.random() * 1.6, vy: -(5 + Math.random() * 12), ph: Math.random() * 6.28 }; spawnP(p, 60, 2400); return p; });
-  shapes = Array.from({ length: 52 }, (_, i) => {
+  streaks = Array.from({ length: 200 }, (_, i) => { const p = { c: i % STREAK_COLS.length }; spawnP(p, 60, 2800); return p; });
+  motes = Array.from({ length: 220 }, (_, i) => { const p = { c: i % MOTE_COLS.length, r: 0.7 + Math.random() * 1.6, vy: -(5 + Math.random() * 12), ph: Math.random() * 6.28 }; spawnP(p, 60, 2400); return p; });
+  shapes = Array.from({ length: 150 }, (_, i) => {
     const t = i % 6, p = { t, col: t === 5 ? LEAF_COLS[i % 3] : SHAPE_COLS[i % SHAPE_COLS.length], size: (t === 5 ? 7 : 4) + Math.random() * 7, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 3 };
     spawnP(p, 120, 2600); return p;
   });
@@ -1324,7 +1407,7 @@ function growthTick(dt){
 /* ---------- Del 2 som forhåndsrendret film på mobil (video/vekst.mp4, rendres med render.js) ---------- */
 const VIDEO_T0 = 2.0, VIDEO_FPS = 30, vid = $('#growthVideo');
 const V = {
-  use: params.get('video') ? params.get('video') === '1' : (matchMedia('(pointer: coarse)').matches && innerHeight / innerWidth > 1.3),
+  use: params.get('video') ? params.get('video') === '1' : true,   // 70vibe: del 2 er alltid film
   ok: true, on: false, primed: false
 };
 if (MODE === 'render' || MODE === 'still') V.use = false;
@@ -1403,6 +1486,19 @@ function enterGrowthState(){
   Object.assign(cam, CAM_VASE); renderCam();
   fill = 1; filled = true; drawWater(false);
 }
+
+/* ---------- 70vibe: regnbuesving på startskjermen, som på VHS-coveret ---------- */
+function offsetPts(pts, off){
+  return pts.map((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [p[0] - dy / l * off, p[1] + dx / l * off]; });
+}
+(function drawSwoosh(){
+  const sv = $('#swoosh'), paths = [];
+  [[[-70, 210], [60, 150], [200, 118], [320, 150], [372, 240], [330, 305], [258, 292], [246, 228], [312, 196], [402, 226], [480, 300]],
+   [[-80, 690], [40, 610], [150, 600], [228, 660], [250, 760], [230, 880]]].forEach(pts => {
+    RAINBOW.forEach((col, k) => paths.push(el('path', { d: smooth(offsetPts(pts, (k - 3.5) * 7.2)), fill: 'none', stroke: col, 'stroke-width': 5.4, 'stroke-linecap': 'butt', 'stroke-linejoin': 'round' }, sv)));
+  });
+  if (MODE !== 'render') gsap.fromTo(paths, { drawSVG: '0%' }, { drawSVG: '100%', duration: 2.4, stagger: 0.05, ease: EASE, delay: 0.2 });
+})();
 
 /* ---------- Start ---------- */
 Sound.init();

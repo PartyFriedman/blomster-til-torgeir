@@ -12,14 +12,14 @@ const URL = process.argv[2] || 'http://127.0.0.1:8765/index.html?scene=render';
 const CHROME = process.argv[3] || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const FFMPEG = process.argv[4] || execFileSync('python', ['-c', 'import imageio_ffmpeg as f; print(f.get_ffmpeg_exe())']).toString().trim();
 const OUT = path.join(__dirname, 'video', 'vekst.mp4');
-const FPS = 30, W = 520, H = 940, DPR = 2, CRF = process.env.CRF || '23';
+const FPS = 30, W = 520, H = 940, DPR = 2, CRF = process.env.CRF || '28';
 
 (async () => {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   const ff = spawn(FFMPEG, ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
     // JPEG er full-range; konverter til vanlig TV-range yuv420p, som alle mobilspillere forventer
     '-vf', 'scale=in_range=pc:out_range=tv,format=yuv420p',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF, '-profile:v', 'high', '-level', '4.2', '-color_range', 'tv',
+    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', CRF, '-profile:v', 'high', '-level', '4.2', '-color_range', 'tv',
     '-movflags', '+faststart', '-an', OUT], { stdio: ['pipe', 'inherit', 'inherit'] });
   const done = new Promise((res, rej) => ff.on('close', c => c === 0 ? res() : rej(new Error('ffmpeg ' + c))));
 
