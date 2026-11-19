@@ -1,0 +1,1540 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#18130F">
+<title>Blomster til Torgeir</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Låst palett (fra kortet og logoen) ---------- */
+  :root{
+    --bg:#18130F; --bg2:#26201A;
+    --kraft:#A97C52; --kraft-d:#7A5537; --kraft-l:#C49B6E;
+    --cream:#EAD3A8; --paper:#F1E6D0;
+    --stem:#A88B62; --leaf:#6E5A3C;
+    --orange:#DE6A2A; --coral:#E9785A; --mustard:#E3A63B; --red:#A2301F;
+    --accent:#49B2CF; /* den ene kalde aksenten: petrol */
+    --lw:2.2px;       /* låst linjetykkelse */
+    --cam:1;          /* kamerazoom kompenseres, så linjen holder seg lik */
+    color-scheme:dark;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#18130F; } }
+  :root[data-theme="dark"]{ --bg:#18130F; }
+
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);}
+  body{
+    background:var(--bg);             /* gradienten ligger i SVG-en, så film og kode er like */
+    color:var(--cream);
+    font-family:"Bebas Neue","Oswald","Arial Narrow",sans-serif;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+    overscroll-behavior:none;touch-action:none;
+  }
+  #stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+  .ln,.lw{stroke-width:calc(var(--lw) / var(--cam));stroke-linecap:round;stroke-linejoin:round;}
+  .ln{fill:none;}
+  .tap{cursor:pointer;}
+
+  .overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:0 16px;text-align:center;}
+  #swoosh{position:absolute;inset:0;width:100%;height:100%;z-index:-1;}
+  .eyebrow{margin:0;font-size:17px;letter-spacing:.32em;color:var(--kraft-l);padding-left:.32em;}
+  .small{margin:0;font-size:14px;letter-spacing:.28em;color:var(--kraft-l);opacity:.7;padding-left:.28em;}
+  #openBtn{
+    font:inherit;font-size:30px;letter-spacing:.3em;line-height:1;
+    padding:16px 30px 13px calc(30px + .3em);
+    color:var(--cream);background:transparent;border:var(--lw) solid var(--cream);border-radius:999px;
+    cursor:pointer;transition:background .3s,color .3s;
+  }
+  #openBtn:hover,#openBtn:focus-visible{background:var(--cream);color:var(--bg);outline:none;}
+  #openBtn[aria-busy="true"]{opacity:.6;}
+  /* Trykkfølelse: slitasje (blekkmangel, sprekker, slitte kanter) + levende filmkorn */
+  #wear,#grain{position:fixed;inset:0;pointer-events:none;z-index:5;}
+  #wear{background:url(../assets/wear.png) center/cover no-repeat;opacity:.55;}
+  #grain{inset:-128px;background:url(../assets/grain.png) 0 0/128px 128px repeat;opacity:.42;animation:grain .9s steps(6) infinite;}
+  @keyframes grain{
+    0%{transform:translate(0,0)} 17%{transform:translate(-37px,21px)} 33%{transform:translate(18px,-44px)}
+    50%{transform:translate(-61px,-12px)} 67%{transform:translate(42px,33px)} 83%{transform:translate(-9px,57px)} 100%{transform:translate(0,0)}
+  }
+  @media (prefers-reduced-motion: reduce){ #grain{animation:none;} }
+  #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;}
+  /* Del 2 som film på mobil – plasseres så filmens viewBox treffer #stage nøyaktig */
+  #growthVideo{position:fixed;left:0;top:0;z-index:3;pointer-events:none;object-fit:fill;background:var(--bg);opacity:0;visibility:hidden;}
+  #replayBtn{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);z-index:6;
+    font:inherit;font-size:17px;letter-spacing:.28em;line-height:1;padding:11px 20px 9px calc(20px + .28em);
+    color:var(--cream);background:rgba(42,30,22,.55);border:var(--lw) solid var(--cream);border-radius:999px;cursor:pointer;
+    opacity:0;visibility:hidden;
+  }
+  #replayBtn:hover,#replayBtn:focus-visible{background:var(--cream);color:var(--bg);outline:none;}
+  .hint{
+    position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 22px);margin:0;
+    text-align:center;font-size:16px;letter-spacing:.26em;color:var(--cream);opacity:0;visibility:hidden;pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+<svg id="stage" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid meet" aria-label="Digital blomsterbukett">
+  <defs>
+    <clipPath id="vaseClip" clipPathUnits="userSpaceOnUse">
+      <path d="M140,620 C140,632 152,638 152,648 C152,670 122,686 122,722 C122,760 144,788 168,790 L232,790 C256,788 278,760 278,722 C278,686 248,670 248,648 C248,638 260,632 260,620 Z"/>
+    </clipPath>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
+    <radialGradient id="bgGrad" gradientUnits="userSpaceOnUse" cx="200" cy="330" r="297" gradientTransform="translate(200 330) scale(1 1.444) translate(-200 -330)">
+      <stop offset="0" stop-color="#2B231C"/><stop offset="1" stop-color="#18130F"/>
+    </radialGradient>
+  </defs>
+  <rect x="-1000" y="-1000" width="2400" height="2800" fill="url(#bgGrad)"/>
+
+  <g id="world">
+  <!-- Dybdeplan bak sluttplanet: stripebuer (3D-noder) og bånd som går langt bak -->
+  <g id="haloNodes"></g>
+  <g id="ribBack"></g>
+  <!-- Sluttplanet (z = 0): vase, bukett, ranker, logo -->
+  <g id="cam">
+    <!-- Vase, bakside -->
+    <g id="vaseBack" visibility="hidden">
+      <path d="M140,620 C140,632 152,638 152,648 C152,670 122,686 122,722 C122,760 144,788 168,790 L232,790 C256,788 278,760 278,722 C278,686 248,670 248,648 C248,638 260,632 260,620 Z" fill="#EAD3A8" fill-opacity=".07"/>
+    </g>
+
+    <!-- Vannstråle (bak buketten, så den renner ned i vasen) -->
+    <g id="stream"><path id="streamBody" fill="#49B2CF" fill-opacity=".55" d=""/><path id="streamLine" class="ln" stroke="#EAD3A8" stroke-opacity=".7" d=""/></g>
+
+    <!-- Kransen, bakre lag (ranker og blader) -->
+    <g id="wreathBack" visibility="hidden"></g>
+
+    <!-- Buketten i brunt papir -->
+    <g id="bouquet" visibility="hidden">
+      <path class="paper draw lw" d="M126,556 L146,534 L164,551 L186,527 L206,547 L228,529 L248,550 L276,536 L205,767 Z" fill="#7A5537" stroke="#C49B6E"/>
+      <g id="stems">
+        <path class="stem ln" stroke="#A88B62" d="M198,690 C186,610 156,540 140,494"/>
+        <path class="stem ln" stroke="#A88B62" d="M204,690 C216,610 246,540 262,490"/>
+        <path class="stem ln" stroke="#A88B62" d="M199,690 C194,620 170,560 160,524"/>
+        <path class="stem ln" stroke="#A88B62" d="M200,690 C196,610 184,540 178,505"/>
+        <path class="stem ln" stroke="#A88B62" d="M201,690 C201,600 200,540 200,497"/>
+        <path class="stem ln" stroke="#A88B62" d="M202,690 C206,610 216,545 222,507"/>
+        <path class="stem ln" stroke="#A88B62" d="M203,690 C210,620 232,565 243,526"/>
+        <path class="stem ln" stroke="#A88B62" d="M200,690 C198,630 192,575 190,533"/>
+        <path class="stem ln" stroke="#A88B62" d="M202,690 C204,630 210,575 213,531"/>
+        <!-- frøstander på gresstråene -->
+        <g class="bud seed"><path class="ln" stroke="#C49B6E" d="M140,494 l-6,-6 M142,501 l-7,-4 M144,508 l-7,-2 M141,497 l4,-7 M143,504 l6,-5"/></g>
+        <g class="bud seed"><path class="ln" stroke="#C49B6E" d="M262,490 l6,-6 M260,497 l7,-4 M258,504 l7,-2 M261,493 l-4,-7 M259,500 l-6,-5"/></g>
+        <!-- eukalyptusblader -->
+        <g class="bud leafy"><path d="M168,553 c-9,-2 -14,-9 -12,-14 c6,1 12,6 12,14Z M175,571 c-10,0 -16,-6 -15,-12 c7,0 13,5 15,12Z" fill="#6E5A3C"/></g>
+        <g class="bud leafy"><path d="M233,553 c9,-2 14,-9 12,-14 c-6,1 -12,6 -12,14Z M226,572 c10,0 16,-6 15,-12 c-7,0 -13,5 -15,12Z" fill="#6E5A3C"/></g>
+        <!-- knopper -->
+        <g class="bud" transform="translate(160,524) rotate(-24)"><path class="budfill" d="M0,0 C-7,-3 -7,-14 0,-20 C7,-14 7,-3 0,0Z" fill="#C9AE84"/><path class="ln" stroke="#A88B62" d="M-5,-3 L0,1 L5,-3"/></g>
+        <g class="bud" transform="translate(178,505) rotate(-14)"><path class="budfill" d="M0,0 C-8,-3 -8,-16 0,-23 C8,-16 8,-3 0,0Z" fill="#9A7B5A"/><path class="ln" stroke="#A88B62" d="M-5,-3 L0,1 L5,-3"/></g>
+        <g class="bud" transform="translate(200,497) rotate(0)"><path class="budfill" d="M0,0 C-8,-3 -8,-17 0,-24 C8,-17 8,-3 0,0Z" fill="#C49B6E"/><path class="ln" stroke="#A88B62" d="M-5,-3 L0,1 L5,-3"/></g>
+        <g class="bud" transform="translate(222,507) rotate(14)"><path class="budfill" d="M0,0 C-8,-3 -8,-16 0,-23 C8,-16 8,-3 0,0Z" fill="#C9AE84"/><path class="ln" stroke="#A88B62" d="M-5,-3 L0,1 L5,-3"/></g>
+        <g class="bud" transform="translate(243,526) rotate(26)"><path class="budfill" d="M0,0 C-7,-3 -7,-14 0,-20 C7,-14 7,-3 0,0Z" fill="#9A7B5A"/><path class="ln" stroke="#A88B62" d="M-5,-3 L0,1 L5,-3"/></g>
+        <g class="bud" transform="translate(190,533) rotate(-8)"><path class="budfill" d="M0,0 C-6,-3 -6,-12 0,-17 C6,-12 6,-3 0,0Z" fill="#C49B6E"/></g>
+        <g class="bud" transform="translate(213,531) rotate(9)"><path class="budfill" d="M0,0 C-6,-3 -6,-12 0,-17 C6,-12 6,-3 0,0Z" fill="#9A7B5A"/></g>
+      </g>
+      <path class="paper draw lw" d="M134,588 C152,576 168,592 184,580 C198,572 214,590 230,578 C244,570 256,584 268,578 L204,765 Z" fill="#A97C52" stroke="#C49B6E"/>
+      <path class="paper" d="M134,588 C150,600 168,628 186,646 L184,580 C168,592 152,576 134,588Z" fill="#C49B6E" fill-opacity=".5"/>
+      <path class="draw ln" stroke="#7A5537" d="M184,580 L197,705 M230,578 L211,705"/>
+      <!-- hyssing -->
+      <path class="draw ln" stroke="#EAD3A8" d="M178,697 Q202,705 226,695 M179,703 Q202,711 225,701"/>
+      <path class="draw ln" stroke="#EAD3A8" d="M202,704 C188,690 180,707 202,706 M202,704 C216,690 226,707 202,706 M202,706 C198,716 194,724 190,732 M202,706 C206,716 212,722 216,730"/>
+    </g>
+
+    <!-- Kransen, fremre lag (blomster, logo, pollen) -->
+    <g id="wreathFront" visibility="hidden"></g>
+
+    <!-- Vann i vasen -->
+    <g id="water" clip-path="url(#vaseClip)" visibility="hidden">
+      <path id="waterBody" fill="#8FCFDF" fill-opacity=".2" d=""/>
+      <path id="waterLine" class="ln" stroke="#EAD3A8" stroke-opacity=".75" d=""/>
+      <g id="drops"></g>
+    </g>
+
+    <!-- Vase, forside -->
+    <g id="vaseFront" visibility="hidden">
+      <path class="ln" stroke="#EAD3A8" d="M140,620 C140,632 152,638 152,648 C152,670 122,686 122,722 C122,760 144,788 168,790 L232,790 C256,788 278,760 278,722 C278,686 248,670 248,648 C248,638 260,632 260,620"/>
+      <ellipse class="ln" stroke="#EAD3A8" cx="200" cy="620" rx="60" ry="5"/>
+      <path class="ln" stroke="#EAD3A8" stroke-opacity=".45" d="M138,700 C131,722 135,750 152,772"/>
+      <path class="ln" stroke="#EAD3A8" stroke-opacity=".3" d="M172,782 L228,782"/>
+    </g>
+
+    <!-- Vannkanne -->
+    <g id="jug" class="tap" visibility="hidden" transform="translate(470,360)">
+      <circle r="78" fill="transparent"/>
+      <path d="M30,-30 C60,-32 64,18 33,26 L34,16 C52,12 50,-20 31,-20 Z" fill="#C49B6E"/>
+      <path d="M-28,-42 L28,-42 C33,-20 39,8 34,38 C32,46 24,50 14,50 L-14,50 C-24,50 -32,46 -34,38 C-39,8 -34,-18 -31,-30 C-37,-36 -42,-44 -48,-50 C-40,-48 -33,-45 -28,-42 Z" fill="#EAD3A8"/>
+      <ellipse cx="0" cy="-41" rx="27" ry="3.5" fill="#49B2CF" fill-opacity=".7"/>
+      <path class="ln" stroke="#A97C52" d="M-36,4 C-12,9 12,9 37,4 M-36,13 C-12,18 12,18 37,13"/>
+    </g>
+
+    <!-- Kortet -->
+    <g transform="translate(200,505)">
+      <g id="card" class="tap" visibility="hidden">
+        <rect x="-139" y="-200" width="290" height="423" rx="3" fill="#000" opacity=".45" filter="url(#soft)"/>
+        <image href="../assets/card.jpg" x="-145" y="-211.5" width="290" height="423" preserveAspectRatio="xMidYMid slice"/>
+        <g id="cover">
+          <rect x="-145" y="-211.5" width="290" height="423" rx="2" fill="#F1E6D0"/>
+          <rect x="-131" y="-197.5" width="262" height="395" fill="none" class="ln" stroke="#C49B6E"/>
+          <path class="ln" stroke="#7A5537" d="M0,70 C-3,30 3,-10 0,-60 M0,20 C-14,10 -22,-4 -24,-18 C-10,-14 -2,-4 0,10 M0,-10 C12,-20 20,-32 22,-46 C8,-42 2,-32 0,-20 M0,-60 C-8,-64 -10,-74 -6,-82 C2,-80 4,-70 0,-60 C4,-70 12,-74 16,-70 C14,-62 6,-58 0,-60"/>
+          <text x="0" y="126" text-anchor="middle" font-family="Bebas Neue, Arial Narrow, sans-serif" font-size="22" letter-spacing="6" fill="#7A5537">TIL TORGEIR</text>
+          <rect id="coverShade" x="-145" y="-211.5" width="290" height="423" fill="#18130F" opacity="0"/>
+        </g>
+      </g>
+    </g>
+  </g>
+  <!-- Blomstene er 3D-noder som flyr fra dybden til plassen sin i kransen -->
+  <g id="nodes"><g id="morphNodes"></g><g id="bloomNodes"></g><g id="accentNodes"></g></g>
+  <g id="pollenPlane"></g>
+  <!-- Bånd som skyter forbi kamera -->
+  <g id="ribFront"></g>
+  </g>
+</svg>
+<canvas id="fx" aria-hidden="true"></canvas>
+<video id="growthVideo" muted playsinline webkit-playsinline preload="auto" aria-hidden="true"></video>
+<button id="replayBtn" type="button">Spill igjen</button>
+
+<div id="intro" class="overlay">
+  <svg id="swoosh" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+  <p class="eyebrow">Til Torgeir Waldemar</p>
+  <button id="openBtn" type="button">Åpne</button>
+  <p class="small">Skru på lyden</p>
+</div>
+<p id="hint" class="hint" aria-live="polite"></p>
+<div id="wear" aria-hidden="true"></div>
+<div id="grain" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/DrawSVGPlugin.min.js"></script>
+<script>
+(() => {
+'use strict';
+gsap.registerPlugin(DrawSVGPlugin);
+
+/* ---------- Låste uttrykksregler ---------- */
+const EASE = 'power3.inOut', EASE_OUT = 'power3.out', EASE_IN = 'power3.in', LOOP = 'sine.inOut';
+gsap.defaults({ ease: EASE });
+const C = {
+  bg:'#18130F', kraft:'#A97C52', kraftD:'#7A5537', kraftL:'#C49B6E', cream:'#EAD3A8', paper:'#F1E6D0',
+  stem:'#A88B62', leaf:'#6E5A3C', orange:'#EE9330', coral:'#E5579A', mustard:'#EFCB3C', red:'#E2483B',
+  redD:'#7A2230', accent:'#49B2CF',
+  pink:'#E5579A', purple:'#7E5BAE', blue:'#3F6CB4', cyan:'#49B2CF', green:'#5BAE6B', yellow:'#EFCB3C'
+};
+// Regnbuen fra VHS-coveret, ytterst til innerst
+const RAINBOW = [C.pink, C.purple, C.blue, C.cyan, C.green, C.yellow, C.orange, C.red];
+const RAINBOW_REV = RAINBOW.slice().reverse();
+const AUDIO = { intro:'../music/peace_song_intro.mp3', outro:'../music/Peace_song_outro.mp3' };
+const OUTRO_FALLBACK = 39.95;
+
+const params = new URLSearchParams(location.search);
+const MODE = params.get('scene');            // utvikling: card | vase | pour | still
+const speed = parseFloat(params.get('speed')) || 1;
+const DEBUG = params.has('debug');
+gsap.globalTimeline.timeScale(speed);
+
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+const svg = $('#stage'), hint = $('#hint');
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+const f1 = n => Math.round(n * 10) / 10;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- Lyd: sømløs loop, crossfade, utfade ---------- */
+const Sound = (() => {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  let ctx = null, loading = Promise.resolve();
+  const buf = {}, FADE_IN = 3, XFADE = 2.5, FADE_OUT = 4;
+  let intro = null, outro = null;
+
+  function init(){
+    if (!AC) return;
+    try { ctx = new AC(); } catch (e) { ctx = null; return; }
+    // Innebygd lyd (data:) dekodes direkte, så den ikke er avhengig av fetch – ellers hentes fila
+    const bytes = url => url.startsWith('data:')
+      ? Promise.resolve().then(() => { const s = atob(url.slice(url.indexOf(',') + 1)), a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a.buffer; })
+      : fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.arrayBuffer(); });
+    const load = (k, url) => bytes(url)
+      .then(ab => new Promise((res, rej) => ctx.decodeAudioData(ab, res, rej))).then(b => { buf[k] = b; });
+    loading = Promise.all([load('intro', AUDIO.intro), load('outro', AUDIO.outro)]).catch(e => console.warn('Lyd:', e));
+  }
+  // Finn første/siste hørbare sample (MP3-polstring), maks 0,25 s inn fra hver kant
+  function edges(b){
+    const ch = []; for (let i = 0; i < b.numberOfChannels; i++) ch.push(b.getChannelData(i));
+    const lim = Math.floor(b.sampleRate * 0.25), th = 0.0008;
+    const loud = i => ch.some(c => Math.abs(c[i]) > th);
+    let s = 0; while (s < lim && !loud(s)) s++; if (s >= lim) s = 0;
+    let e = b.length - 1, stop = b.length - lim; while (e > stop && !loud(e)) e--; if (e <= stop) e = b.length - 1;
+    return { start: s / b.sampleRate, end: (e + 1) / b.sampleRate };
+  }
+  function unlock(){ // må kalles synkront i klikket
+    if (!ctx) return;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    ctx.resume();
+    const s = ctx.createBufferSource(); s.buffer = ctx.createBuffer(1, 1, 22050); s.connect(ctx.destination); s.start(0);
+  }
+  async function startIntro(){
+    await loading;
+    if (!ctx || !buf.intro) return;
+    const b = buf.intro, ed = edges(b), g = ctx.createGain(), src = ctx.createBufferSource();
+    src.buffer = b; src.loop = true; src.loopStart = ed.start; src.loopEnd = ed.end;
+    src.connect(g); g.connect(ctx.destination);
+    const t = ctx.currentTime + 0.05;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + FADE_IN);
+    src.start(t, ed.start);
+    intro = { src, g };
+  }
+  function curve(up, scale){ const n = 64, a = new Float32Array(n); for (let i = 0; i < n; i++){ const x = i / (n - 1); a[i] = scale * (up ? Math.sin(x * Math.PI / 2) : Math.cos(x * Math.PI / 2)); } return a; }
+  const running = () => !!(ctx && ctx.state === 'running' && buf.outro);
+  function playOutro(t, fade){
+    const b = buf.outro, ed = edges(b), dur = ed.end - ed.start;
+    const g = ctx.createGain(), src = ctx.createBufferSource();
+    src.buffer = b; src.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.setValueCurveAtTime(curve(true, 1), t, fade);
+    g.gain.setValueAtTime(1, t + dur - FADE_OUT);
+    g.gain.linearRampToValueAtTime(0, t + dur - 0.02);
+    src.start(t, ed.start, dur);
+    outro = { src, g, start: t, dur };
+    return { start: t, dur, clock: 'audio' };
+  }
+  // Uten lyd (blokkert/feil) går veksten på vanlig klokke med samme lengde
+  const fallback = () => ({ start: performance.now() / 1000, dur: OUTRO_FALLBACK, clock: 'perf' });
+  // Returnerer når outroen starter og hvor lang den er – vekst-timelinen synkes mot dette
+  function toOutro(){
+    if (!running()) return fallback();
+    const t = ctx.currentTime + 0.05;
+    if (intro){
+      const cur = intro.g.gain.value;
+      intro.g.gain.cancelScheduledValues(0); intro.g.gain.setValueAtTime(cur, ctx.currentTime);
+      intro.g.gain.setValueCurveAtTime(curve(false, cur), t, XFADE);
+      intro.src.stop(t + XFADE + 0.1);
+      intro = null;
+    }
+    return playOutro(t, XFADE);
+  }
+  function replay(){
+    if (!running()) return fallback();
+    if (outro){ try { outro.src.stop(); } catch (e) {} }
+    return playOutro(ctx.currentTime + 0.05, 0.6);
+  }
+  const now = () => ctx ? ctx.currentTime : performance.now() / 1000;
+  return { init, unlock, startIntro, toOutro, replay, now, get ready(){ return loading; } };
+})();
+
+/* ---------- Hint-tekst ---------- */
+function say(text, delay = 0){
+  gsap.killTweensOf(hint);
+  return gsap.timeline({ delay })
+    .to(hint, { autoAlpha: 0, duration: 0.35, ease: EASE })
+    .call(() => { hint.textContent = text; })
+    .to(hint, { autoAlpha: text ? 0.85 : 0, duration: 0.6, ease: EASE });
+}
+
+/* ---------- 3D-kamera ----------
+   Kameraet står i (x, y, z) og ser langs +z. Et punkt på dybde z vises med skala s = F / (z − cam.z),
+   så sluttplanet z = 0 er 1:1 når cam.z = −F. Alle linjer får --cam = s, så linjetykkelsen er låst. */
+const F = 800, NEAR = 30;
+const cam = { x: 200, y: 400, z: -F, roll: 0, kick: 0 };   // kick = liten zoom-puls på slagene
+const CAM_VASE = { x: 215, y: 587, z: -640 };     // nærbildet av vasen i scene 3
+const camEl = $('#cam'), worldEl = $('#world');
+let camScale = 1;
+const f2 = n => Math.round(n * 100) / 100;
+function proj(x, y, z){ const d = z - cam.z; if (d < NEAR) return null; const s = F * (1 + cam.kick) / d; return [200 + (x - cam.x) * s, 400 + (y - cam.y) * s, s, d]; }
+// Plasser en gruppe hvis innhold ligger i verdenskoordinater på dybde z (k = ekstra skala, rot = rotasjon, begge om (kx, ky))
+function placePlane(elm, z, k = 1, kx = 200, ky = 330, rot = 0){
+  const d = z - cam.z;
+  if (d < NEAR){ if (elm._vis !== false){ elm.setAttribute('visibility', 'hidden'); elm._vis = false; } return 0; }
+  if (elm._vis !== true){ elm.setAttribute('visibility', 'visible'); elm._vis = true; }
+  const s = F * (1 + cam.kick) / d;
+  elm.setAttribute('transform', `translate(${f2(200 - cam.x * s)},${f2(400 - cam.y * s)}) scale(${s.toFixed(5)})`
+    + (k !== 1 ? ` translate(${kx},${ky}) scale(${k.toFixed(4)}) translate(${-kx},${-ky})` : '')
+    + (rot ? ` rotate(${f2(rot)} ${kx} ${ky})` : ''));
+  elm.style.setProperty('--cam', (s * k).toFixed(4));
+  return s;
+}
+function renderCam(){
+  camScale = placePlane(camEl, 0) || camScale;
+  worldEl.setAttribute('transform', cam.roll ? `rotate(${f2(cam.roll)} 200 400)` : '');
+}
+renderCam();
+
+/* ---------- Startoppsett ---------- */
+const BOUQUET_START = { y: -262, scale: 1.3 };
+gsap.set('#bouquet', { transformOrigin: '50% 100%', ...BOUQUET_START });
+gsap.set(['#vaseBack', '#vaseFront', '#water'], { y: 330 });
+gsap.set('#card', { y: 640, x: 30, rotation: 9, transformOrigin: '50% 50%' });
+gsap.set('#cover', { scaleX: 1, transformOrigin: '0% 50%' });   // kortet starter lukket
+
+/* Scene 2: buketten bygges, kortet glir inn */
+function playBouquet(){
+  const tl = gsap.timeline();
+  tl.set('#bouquet', { visibility: 'visible' })
+    .fromTo('#bouquet .draw', { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.6, stagger: 0.08, ease: EASE })
+    .from('#bouquet .paper', { fillOpacity: 0, duration: 1.2, stagger: 0.1, ease: EASE }, '<0.5')
+    .fromTo('#stems .stem', { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.2, stagger: 0.06, ease: EASE_OUT }, '<0.1')
+    .from('#stems .bud', { scale: 0, transformOrigin: '50% 100%', duration: 0.9, stagger: 0.06, ease: EASE_OUT }, '<0.6')
+    .add(startSway)
+    .add(showCard, '+=0.3');
+  return tl;
+}
+let sway = null;
+function startSway(){
+  if (sway) sway.kill();
+  sway = gsap.to('#stems', { rotation: 1.1, svgOrigin: '200 690', duration: 3.2, yoyo: true, repeat: -1, ease: LOOP });
+}
+function stopSway(){
+  if (!sway) return;
+  sway.pause();
+  gsap.to('#stems', { rotation: 0, svgOrigin: '200 690', duration: 1.6, ease: EASE });
+}
+// Kortet: kommer inn lukket («Til Torgeir») → trykk åpner → les → trykk lukker → ut
+let cardState = 'away';                     // away | closed | busy | open | done
+function showCard(){
+  gsap.timeline()
+    .set('#card', { visibility: 'visible' })
+    .to('#card', { y: 0, x: 0, rotation: -3, duration: 1.5, ease: EASE_OUT })
+    .add(() => { cardState = 'closed'; say('Trykk på kortet for å åpne det', 0.8); if (MODE === 'vase' || MODE === 'pour') openCard(); });
+}
+$('#card').addEventListener('click', () => {
+  if (cardState === 'closed') openCard();
+  else if (cardState === 'open') closeCard();
+});
+function openCard(){
+  cardState = 'busy';
+  say('');
+  gsap.timeline()
+    .to('#card', { scale: 1.04, duration: 0.3, ease: EASE_OUT })
+    .to('#cover', { scaleX: 0, duration: 0.9, ease: EASE }, '<0.1')
+    .fromTo('#coverShade', { opacity: 0 }, { opacity: 0.55, duration: 0.9, ease: EASE }, '<')
+    .to('#card', { scale: 1, duration: 0.5, ease: EASE }, '-=0.4')
+    .add(() => { cardState = 'open'; say('Trykk på kortet for å lukke det', 2.4); if (MODE === 'vase' || MODE === 'pour') closeCard(); });
+}
+
+/* Scene 3: kortet lukkes, vasen kommer inn */
+function closeCard(){
+  cardState = 'done';
+  say('');
+  gsap.timeline()
+    .to('#cover', { scaleX: 1, duration: 0.8, ease: EASE })
+    .fromTo('#coverShade', { opacity: 0.55 }, { opacity: 0, duration: 0.8, ease: EASE }, '<')
+    .to('#card', { y: 720, rotation: 7, duration: 1.0, ease: EASE_IN }, '+=0.25')
+    .set('#card', { visibility: 'hidden' })
+    .add(bringVase, '-=0.5');
+}
+function bringVase(){
+  gsap.timeline()
+    .set(['#vaseBack', '#vaseFront', '#water'], { visibility: 'visible' })
+    .to(['#vaseBack', '#vaseFront', '#water'], { y: 0, duration: 1.8, ease: EASE })
+    .to('#bouquet', { y: 0, scale: 1, duration: 1.8, ease: EASE }, '<0.1')
+    .to(cam, { ...CAM_VASE, duration: 2.0, ease: EASE, onUpdate: renderCam }, '<0.2')
+    .add(bringJug, '-=0.3');
+}
+
+/* ---------- Vannkanne og helling ---------- */
+const JUG_REST = { x: 306, y: 468 };
+const jug = { x: 470, y: 360, a: 18 };               // a = helling i grader (positiv = heller)
+const SPOUT = [-48, -50];
+const jugEl = $('#jug');
+function renderJug(){ jugEl.setAttribute('transform', `translate(${f1(jug.x)},${f1(jug.y)}) rotate(${f1(-jug.a)})`); }
+function spoutPos(){
+  const r = -jug.a * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+  return [jug.x + SPOUT[0] * c - SPOUT[1] * s, jug.y + SPOUT[0] * s + SPOUT[1] * c];
+}
+let jugActive = false, filled = false, fill = 0, invite = null, autoPour = null;
+
+function bringJug(){
+  renderJug();
+  gsap.timeline()
+    .set(jugEl, { visibility: 'visible' })
+    .to(jug, { x: JUG_REST.x, y: JUG_REST.y, a: 0, duration: 1.3, ease: EASE_OUT, onUpdate: renderJug })
+    .add(() => {
+      jugActive = true;
+      say('Dra eller trykk på kanna for å vanne');
+      if (!G.tl) buildGrowth(OUTRO_FALLBACK);   // bygg veksten nå, så crossfaden ikke hakker
+      cueVideo();                               // filmen står klar på 2,0 s
+      invite = gsap.timeline({ repeat: -1, repeatDelay: 2.4, delay: 1.2 })
+        .to(jug, { a: 9, duration: 0.45, ease: EASE, onUpdate: renderJug })
+        .to(jug, { a: 0, duration: 0.6, ease: EASE, onUpdate: renderJug });
+      if (MODE === 'pour') startAutoPour();
+    });
+}
+
+function svgPoint(e){ const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+let drag = null;
+jugEl.addEventListener('pointerdown', e => {
+  if (!jugActive || filled) return;
+  e.preventDefault();
+  try { jugEl.setPointerCapture(e.pointerId); } catch (err) {}
+  if (invite){ invite.kill(); invite = null; }
+  if (autoPour) return;
+  gsap.killTweensOf(jug);
+  const p = svgPoint(e);
+  drag = { x: p.x, y: p.y, t: performance.now(), moved: 0, id: e.pointerId };
+});
+jugEl.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const p = svgPoint(e), dx = (p.x - drag.x) / camScale, dy = (p.y - drag.y) / camScale;
+  drag.moved = Math.max(drag.moved, Math.hypot(dx, dy));
+  jug.a = clamp((-dx * 0.9 + dy * 0.7) * 0.8, 0, 72);
+  jug.x = JUG_REST.x + clamp(dx * 0.2, -12, 12);
+  jug.y = JUG_REST.y + clamp(dy * 0.2, -10, 14);
+  renderJug();
+});
+function endDrag(e){
+  if (!drag || e.pointerId !== drag.id) return;
+  const wasTap = drag.moved < 8 && performance.now() - drag.t < 450;
+  drag = null;
+  if (filled) return;
+  if (wasTap) startAutoPour();
+  else gsap.to(jug, { a: 0, x: JUG_REST.x, y: JUG_REST.y, duration: 0.7, ease: EASE, onUpdate: renderJug });
+}
+jugEl.addEventListener('pointerup', endDrag);
+jugEl.addEventListener('pointercancel', endDrag);
+
+function startAutoPour(){
+  if (invite){ invite.kill(); invite = null; }
+  gsap.killTweensOf(jug);
+  autoPour = gsap.to(jug, { a: 62, x: JUG_REST.x - 4, y: JUG_REST.y + 8, duration: 0.8, ease: EASE, onUpdate: renderJug });
+}
+
+/* Vannstråle, vannflate, dråper */
+const stream = { u0: 0, u1: 0 };
+const W_EMPTY = 792, W_FULL = 668;
+let wavePhase = 0, lastDrop = 0;
+const waterBody = $('#waterBody'), waterLine = $('#waterLine'), streamBody = $('#streamBody'), streamLine = $('#streamLine'), drops = $('#drops');
+function level(){ return W_EMPTY + (W_FULL - W_EMPTY) * fill; }
+
+function drawWater(pouring){
+  const y = level(), amp = pouring ? 2.2 : 0.9;
+  let top = '';
+  for (let x = 110; x <= 290; x += 10) top += `${x === 110 ? 'M' : 'L'}${x},${f1(y + amp * Math.sin(x * 0.09 + wavePhase))}`;
+  waterLine.setAttribute('d', fill > 0.002 ? top : '');
+  waterBody.setAttribute('d', fill > 0.002 ? `${top} L290,800 L110,800 Z` : '');
+}
+function streamGeom(){
+  const [sx, sy] = spoutPos(), ex = clamp(sx + 2, 232, 250), ey = level();
+  const cx = sx - 9, cy = sy + 14;
+  const P = u => [(1-u)*(1-u)*sx + 2*(1-u)*u*cx + u*u*ex, (1-u)*(1-u)*sy + 2*(1-u)*u*cy + u*u*ey];
+  const D = u => [2*(1-u)*(cx - sx) + 2*u*(ex - cx), 2*(1-u)*(cy - sy) + 2*u*(ey - cy)];
+  return { P, D, ex, ey };
+}
+function drawStream(){
+  if (stream.u1 - stream.u0 < 0.01){ streamBody.setAttribute('d', ''); streamLine.setAttribute('d', ''); return; }
+  const g = streamGeom(), L = [], R = [], mid = [];
+  for (let i = 0; i <= 16; i++){
+    const u = stream.u0 + (stream.u1 - stream.u0) * i / 16, [px, py] = g.P(u), [dx, dy] = g.D(u);
+    const len = Math.hypot(dx, dy) || 1, w = 2.6 - 1.1 * u, nx = -dy / len * w, ny = dx / len * w;
+    L.push(`${f1(px + nx)},${f1(py + ny)}`); R.unshift(`${f1(px - nx)},${f1(py - ny)}`); mid.push(`${f1(px + nx * 0.3)},${f1(py + ny * 0.3)}`);
+  }
+  streamBody.setAttribute('d', `M${L.join(' L')} L${R.join(' L')} Z`);
+  streamLine.setAttribute('d', `M${mid.join(' L')}`);
+}
+function splash(x, y){
+  const d = el('circle', { cx: f1(x), cy: f1(y), r: 1.6, fill: Math.random() < 0.5 ? C.cream : C.accent }, drops);
+  const dx = (Math.random() - 0.5) * 22, up = 8 + Math.random() * 12;
+  gsap.timeline({ onComplete: () => d.remove() })
+    .to(d, { attr: { cy: y - up }, x: dx * 0.5, duration: 0.28, ease: EASE_OUT })
+    .to(d, { attr: { cy: y + 3 }, x: dx, opacity: 0, duration: 0.32, ease: EASE_IN });
+  if (Math.random() < 0.35){
+    const r = el('ellipse', { cx: f1(x), cy: f1(y), rx: 2, ry: 0.6, class: 'ln', stroke: C.cream, 'stroke-opacity': 0.6 }, drops);
+    gsap.to(r, { attr: { rx: 22, ry: 3 }, opacity: 0, duration: 0.9, ease: EASE_OUT, onComplete: () => r.remove() });
+  }
+}
+
+gsap.ticker.add((time, dtMs) => {
+  const dt = Math.min(dtMs, 50) / 1000 * speed;
+  const rate = filled ? 0 : clamp((jug.a - 28) / 30, 0, 1) * 0.5;
+  const pouring = rate > 0;
+  if (pouring && !G.swayStopped){ G.swayStopped = true; stopSway(); }   // stilkene i ro før veksten (lik filmen)
+  wavePhase += dt * (pouring ? 7 : 2);
+  if (pouring){
+    if (stream.u0 >= stream.u1){ stream.u0 = 0; stream.u1 = 0; }
+    stream.u0 = Math.max(0, stream.u0 - dt * 4);
+    stream.u1 = Math.min(1, stream.u1 + dt * 4);
+    if (stream.u1 >= 1){
+      fill = Math.min(1, fill + rate * dt);
+      if (time - lastDrop > 0.07){ lastDrop = time; const g = streamGeom(); splash(g.ex, g.ey); }
+      if (fill >= 1 && !filled) onFilled();
+    }
+  } else if (stream.u1 > 0){
+    stream.u0 = Math.min(stream.u1, stream.u0 + dt * 4);
+    if (stream.u0 >= stream.u1){ stream.u0 = stream.u1 = 0; }
+  }
+  if ((jugActive || fill > 0) && !V.on) drawWater(pouring);
+  drawStream();
+  growthTick(dt);
+  videoTick();
+});
+
+/* Vasen er full: crossfade til outroen, vekst-timelinen starter */
+function onFilled(){
+  filled = true; jugActive = false;
+  if (autoPour){ autoPour.kill(); autoPour = null; }
+  gsap.killTweensOf(jug);
+  say('');
+  gsap.timeline()
+    .to(jug, { a: 0, duration: 0.7, ease: EASE, onUpdate: renderJug })
+    .to(jug, { x: 480, y: 330, a: -14, duration: 1.1, ease: EASE_IN, onUpdate: renderJug })
+    .set(jugEl, { visibility: 'hidden' });
+  const out = Sound.toOutro();
+  startGrowth(out);
+}
+
+/* ---------- Kransens geometri (= det godkjente sluttbildet v2) ---------- */
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function smooth(pts){
+  let d = `M${f1(pts[0][0])},${f1(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++){
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    d += `C${f1(p1[0] + (p2[0] - p0[0]) / 6)},${f1(p1[1] + (p2[1] - p0[1]) / 6)} ${f1(p2[0] - (p3[0] - p1[0]) / 6)},${f1(p2[1] - (p3[1] - p1[1]) / 6)} ${f1(p2[0])},${f1(p2[1])}`;
+  }
+  return d;
+}
+const RING = { cx: 200, cy: 330, rx: 158, ry: 238 };
+function ringPt(deg, dr = 0){ const t = deg * Math.PI / 180; return [RING.cx + (RING.rx + dr) * Math.cos(t), RING.cy + (RING.ry + dr) * Math.sin(t)]; }
+const GOLD = 137.50776 * Math.PI / 180;
+function mixHex(a, b, t){ const p = h => [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16)); const A = p(a), B = p(b); return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+function petalPath(L, w){ return `M0,0 C${f1(w)},${f1(-L * 0.3)} ${f1(w * 0.8)},${f1(-L * 0.9)} 0,${f1(-L)} C${f1(-w * 0.8)},${f1(-L * 0.9)} ${f1(-w)},${f1(-L * 0.3)} 0,0Z`; }
+
+const Flowers = {
+  // Phyllotaxis-skive med kronbladkrans
+  phyllo(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g), n = Math.round(14 + R / 3);
+    [[cols[0], 1.0, 0], [cols[1], 0.78, 0.5]].forEach(([col, k, off]) => {
+      for (let i = 0; i < n; i++) el('path', { class: 'petal', d: petalPath(R * k, R * 0.17), fill: col }, el('g', { transform: `rotate(${f1((i + off) * 360 / n)}) translate(0,${f1(-R * 0.36)})` }, petals));
+    });
+    const disc = el('g', { class: 'disc' }, g);
+    el('circle', { r: f1(R * 0.47), fill: C.redD }, disc);
+    const N = Math.round(R * 3.2);
+    for (let i = 1; i <= N; i++){
+      const t = i / N, r = R * 0.44 * Math.sqrt(t), a = i * GOLD;
+      el('circle', { class: 'seed', cx: f1(r * Math.cos(a)), cy: f1(r * Math.sin(a)), r: f1((0.55 + 1.1 * Math.sqrt(t)) * R / 36), fill: t < 0.5 ? mixHex(C.mustard, C.orange, t * 2) : mixHex(C.orange, C.red, (t - 0.5) * 2) }, disc);
+    }
+  },
+  daisy(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g), n = 11;
+    for (let i = 0; i < n; i++) el('path', { class: 'petal', d: petalPath(R, R * 0.24), fill: cols[i % 2 ? 1 : 0] }, el('g', { transform: `rotate(${f1(i * 360 / n)}) translate(0,${f1(-R * 0.16)})` }, petals));
+    const disc = el('g', { class: 'disc' }, g);
+    el('circle', { r: f1(R * 0.27), fill: C.mustard }, disc);
+    for (let i = 1; i <= 14; i++){ const r = R * 0.22 * Math.sqrt(i / 14), a = i * GOLD; el('circle', { class: 'seed', cx: f1(r * Math.cos(a)), cy: f1(r * Math.sin(a)), r: f1(R * 0.035), fill: C.redD }, disc); }
+  },
+  ranunculus(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g);
+    for (let k = 0; k < 4; k++){
+      const rk = R * (1 - k * 0.23), m = 7 - k;
+      for (let i = 0; i < m; i++){ const a = (i / m) * Math.PI * 2 + k * 0.5; el('circle', { class: 'petal', cx: f1(Math.cos(a) * rk * 0.52), cy: f1(Math.sin(a) * rk * 0.52), r: f1(rk * 0.5), fill: cols[k % cols.length] }, petals); }
+    }
+    el('circle', { class: 'disc', r: f1(R * 0.14), fill: C.redD }, g);
+  },
+  poppy(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g);
+    for (let i = 0; i < 4; i++){ const a = (45 + i * 90) * Math.PI / 180; el('circle', { class: 'petal', cx: f1(Math.cos(a) * R * 0.42), cy: f1(Math.sin(a) * R * 0.42), r: f1(R * 0.6), fill: cols[0] }, petals); }
+    for (let i = 0; i < 4; i++){ const a = (i * 90) * Math.PI / 180; el('circle', { class: 'petal', cx: f1(Math.cos(a) * R * 0.28), cy: f1(Math.sin(a) * R * 0.28), r: f1(R * 0.46), fill: cols[1] }, petals); }
+    const disc = el('g', { class: 'disc' }, g);
+    el('circle', { r: f1(R * 0.22), fill: C.bg }, disc);
+    let d = ''; for (let i = 0; i < 10; i++){ const a = i * Math.PI / 5; d += `M${f1(Math.cos(a) * R * 0.24)},${f1(Math.sin(a) * R * 0.24)} L${f1(Math.cos(a) * R * 0.42)},${f1(Math.sin(a) * R * 0.42)}`; }
+    el('path', { class: 'ln seed', d, stroke: C.bg }, disc);
+  },
+  // 70-talls stripesol (som solen i California-plakaten)
+  stripeSun(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g);
+    el('circle', { class: 'petal', r: f1(R), fill: cols[0] }, petals);
+    for (let k = 0; k < 4; k++){
+      const y0 = R * (0.1 + k * 0.23), y1 = y0 + R * 0.1; if (y1 >= R) break;
+      const w0 = Math.sqrt(R * R - y0 * y0) + 1, w1 = Math.sqrt(R * R - y1 * y1) + 1;
+      el('path', { class: 'petal', d: `M${f1(-w0)},${f1(y0)} L${f1(w0)},${f1(y0)} L${f1(w1)},${f1(y1)} L${f1(-w1)},${f1(y1)}Z`, fill: C.bg }, petals);
+    }
+  },
+  // konsentriske ringer
+  target(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g);
+    for (let k = 0; k < 4; k++) el('circle', { class: 'petal', r: f1(R * (1 - k * 0.23)), fill: cols[k % cols.length] }, petals);
+    el('circle', { class: 'disc', r: f1(R * 0.13), fill: C.bg }, g);
+  },
+  cosmos(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g), n = 8, w = R * 0.36, L = R;
+    const d = `M0,0 C${f1(w)},${f1(-L * .2)} ${f1(w * 1.15)},${f1(-L * .8)} ${f1(w * .55)},${f1(-L)} L0,${f1(-L * .86)} L${f1(-w * .55)},${f1(-L)} C${f1(-w * 1.15)},${f1(-L * .8)} ${f1(-w)},${f1(-L * .2)} 0,0Z`;
+    for (let i = 0; i < n; i++) el('path', { class: 'petal', d, fill: cols[i % 2] }, el('g', { transform: `rotate(${f1(i * 360 / n)})` }, petals));
+    el('circle', { class: 'disc', r: f1(R * 0.2), fill: C.mustard }, g);
+  },
+  starburst(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g);
+    [[R, R * 0.55, cols[0]], [R * 0.62, R * 0.34, cols[1]]].forEach(([ro, ri, col]) => {
+      let d = ''; for (let i = 0; i < 24; i++){ const a = i * Math.PI / 12, r = i % 2 ? ri : ro; d += `${i ? 'L' : 'M'}${f1(Math.cos(a) * r)},${f1(Math.sin(a) * r)}`; }
+      el('path', { class: 'petal', d: d + 'Z', fill: col }, petals);
+    });
+    el('circle', { class: 'disc', r: f1(R * 0.18), fill: C.cream }, g);
+  },
+  tulip(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g), r = v => f1(R * v);
+    el('path', { class: 'petal', d: `M0,${r(.5)} C${r(-.9)},${r(.3)} ${r(-.8)},${r(-.6)} ${r(-.45)},${r(-1)} L${r(-.15)},${r(-.45)} L0,${r(-.95)} L${r(.15)},${r(-.45)} L${r(.45)},${r(-1)} C${r(.8)},${r(-.6)} ${r(.9)},${r(.3)} 0,${r(.5)}Z`, fill: cols[0] }, petals);
+    el('path', { class: 'petal', d: `M0,${r(.5)} C${r(-.4)},${r(.2)} ${r(-.35)},${r(-.5)} 0,${r(-.8)} C${r(.35)},${r(-.5)} ${r(.4)},${r(.2)} 0,${r(.5)}Z`, fill: cols[1] }, petals);
+  },
+  berries(g, R, cols){
+    const petals = el('g', { class: 'petals' }, g), pts = [[0, 0], [-.9, -.7], [.8, -.9], [-.2, -1.6], [1.1, .4], [-1.1, .5]];
+    el('path', { class: 'ln', d: pts.map(([x, y]) => `M0,${f1(R * 1.6)} L${f1(x * R)},${f1(y * R)}`).join(''), stroke: C.stem }, petals);
+    pts.forEach(([x, y], i) => el('circle', { class: 'petal', cx: f1(x * R), cy: f1(y * R), r: f1(R * .42), fill: cols[i % cols.length] }, petals));
+  },
+  accent(g, R){
+    const petals = el('g', { class: 'petals' }, g);
+    for (let i = 0; i < 5; i++){ const a = (i / 5) * Math.PI * 2 - Math.PI / 2; el('circle', { class: 'petal', cx: f1(Math.cos(a) * R * 0.5), cy: f1(Math.sin(a) * R * 0.5), r: f1(R * 0.46), fill: C.accent }, petals); }
+    el('circle', { class: 'disc', r: f1(R * 0.24), fill: C.cream }, g);
+  }
+};
+
+// Kransens oppskrift: [vinkel på ellipsen, type, radius, farger, radial forskyvning]
+const WREATH = [
+  [270, 'phyllo', 40, [C.mustard, C.orange], -4],
+  [248, 'ranunculus', 21, [C.coral, C.orange, C.coral, C.mustard], 6],
+  [293, 'ranunculus', 20, [C.red, C.coral, C.red, C.orange], 4],
+  [228, 'daisy', 23, [C.coral, C.orange], -6],
+  [313, 'poppy', 22, [C.red, '#C2452A'], -4],
+  [236, 'accent', 8, null, 22], [304, 'accent', 7, null, 24], [258, 'accent', 6, null, -20],
+  [204, 'phyllo', 30, [C.orange, C.coral], 2],
+  [338, 'daisy', 24, [C.mustard, C.orange], 6],
+  [186, 'poppy', 21, [C.red, '#C2452A'], 10],
+  [356, 'ranunculus', 22, [C.coral, C.orange, C.mustard, C.coral], -2],
+  [168, 'daisy', 19, [C.orange, C.coral], -8],
+  [12, 'phyllo', 29, [C.mustard, C.coral], 0],
+  [150, 'ranunculus', 23, [C.red, C.coral, C.red, C.mustard], 4],
+  [30, 'daisy', 20, [C.coral, C.mustard], -8],
+  [160, 'accent', 7, null, 22], [22, 'accent', 8, null, 20], [196, 'accent', 6, null, -18], [345, 'accent', 6, null, -20],
+  [132, 'phyllo', 25, [C.mustard, C.orange], -2],
+  [50, 'poppy', 22, [C.red, '#C2452A'], 4],
+  [116, 'daisy', 16, [C.coral, C.orange], 2],
+  [66, 'ranunculus', 18, [C.orange, C.coral, C.mustard, C.orange], -2],
+  [124, 'accent', 6, null, 18], [58, 'accent', 6, null, 20]
+];
+
+// Bygger sluttbildet og returnerer delene veksten styrer. Rekkefølgen på rnd()-kallene er låst: den gir v2-geometrien.
+function buildWreath(){
+  const back = $('#wreathBack'), front = $('#wreathFront'), rnd = rng(7);
+  back.innerHTML = ''; front.innerHTML = '';
+  ['#haloNodes', '#bloomNodes', '#accentNodes', '#pollenPlane'].forEach(s => { $(s).innerHTML = ''; });
+  const W = { halo: [], vines: [], leaves: [], branches: [], flowers: [], pollen: [] };
+  // Stripebuer rundt kransen (70-talls tonebånd i brunt) – hver bue er en egen 3D-node
+  const HALO = RAINBOW;
+  HALO.forEach((col, k) => {
+    const pts = []; for (let i = 0; i <= 40; i++) pts.push(ringPt(140 + 260 * i / 40, 40 + k * 5.5));
+    const g = el('g', {}, $('#haloNodes'));
+    el('path', { class: 'ln halo', d: smooth(pts), stroke: col }, g);
+    W.halo.push({ el: g, z: 0, k: 1, op: 1 });
+  });
+  const vines = el('g', { id: 'vines' }, back), leaves = el('g', { id: 'leaves' }, back);
+  // Fire ranker: to per side, faseforskjøvet så de fletter seg. Hovedrankene er stripebånd.
+  const RIBBON = [C.kraftD, C.kraft, C.stem, C.kraftL], GAP = 4.2, side = {};
+  [[1, 0, 7], [1, Math.PI, 5.5], [-1, 0.7, 7], [-1, 0.7 + Math.PI, 5.5]].forEach(([dir, ph, amp], vi) => {
+    const pts = [[200 - dir * 3, 610]];
+    for (let i = 0; i <= 30; i++){
+      const t = i / 30 * 1.04, env = Math.min(1, t * 5);
+      pts.push(ringPt(90 + dir * 180 * t, amp * env * Math.sin(t * Math.PI * 6 + ph)));
+    }
+    // andel av ranken ved hvert punkt – styrer blader, grener og logomasken
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+    const frac = cum.map(c => c / cum[cum.length - 1]);
+    if (vi % 2 === 0){
+      side[dir] = { pts, frac };
+      const rib = el('g', { class: 'ribbon' }, vines);
+      RIBBON.forEach((col, k) => {
+        const off = (k - (RIBBON.length - 1) / 2) * GAP * dir;
+        const op = pts.map((p, i) => {
+          const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+          return [p[0] - dy / l * off, p[1] + dx / l * off];
+        });
+        W.vines.push({ el: el('path', { class: 'ln vine', d: smooth(op), stroke: col }, rib) });
+      });
+    } else W.vines.push({ el: el('path', { class: 'ln vine', d: smooth(pts), stroke: C.stem }, vines) });
+    // blader langs ranken
+    for (let i = 3; i < pts.length - 2; i += 2){
+      const [x, y] = pts[i], [nx, ny] = pts[i + 1], ang = Math.atan2(ny - y, nx - x) * 180 / Math.PI;
+      const sd = (i + vi) % 4 < 2 ? 1 : -1, L = 13 + rnd() * 8, w = 4.5 + rnd() * 2.5;
+      const lf = { x: f1(x), y: f1(y), rot: f1(ang + sd * (38 + rnd() * 20)), p: frac[i], k: 1 };
+      lf.el = el('g', { class: 'leaf', transform: `translate(${lf.x},${lf.y}) rotate(${lf.rot})` }, leaves);
+      el('path', { d: `M0,0 Q${f1(L / 2)},${f1(-w)} ${f1(L)},0 Q${f1(L / 2)},${f1(w)} 0,0Z`, fill: C.leaf }, lf.el);
+      el('path', { class: 'ln', d: `M0,0 L${f1(L * 0.85)},0`, stroke: C.stem }, lf.el);
+      W.leaves.push(lf);
+    }
+  });
+  // vinkel på ellipsen → andel av hovedranken på samme side
+  W.fracAt = deg => {
+    let a = ((deg % 360) + 360) % 360, dir, t;
+    if (a >= 90 && a <= 270){ dir = 1; t = (a - 90) / 180; } else { dir = -1; if (a > 270) a -= 360; t = (90 - a) / 180; }
+    const sf = side[dir]; return sf.frac[clamp(Math.round(t / 1.04 * 30) + 1, 1, sf.pts.length - 1)];
+  };
+  // høyden til rankehodet ved andel p (venstre hovedranke)
+  W.headY = p => {
+    const { pts, frac } = side[1]; let i = 1; while (i < frac.length - 1 && frac[i] < p) i++;
+    const u = frac[i] > frac[i - 1] ? clamp((p - frac[i - 1]) / (frac[i] - frac[i - 1]), 0, 1) : 0;
+    return pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * u;
+  };
+
+  // Logo i midten
+  const LW = 190, LH = LW * 1237 / 820;
+  // 70vibe: regnbue-ekstrudering bak logoen, som bokstavene på VHS-coveret
+  const lmask = el('mask', { id: 'logoShape', maskUnits: 'userSpaceOnUse', x: -200, y: -200, width: 800, height: 1200, style: 'mask-type:alpha' }, svg.querySelector('defs'));
+  el('image', { href: '../assets/logo.png', x: f1(200 - LW / 2), y: f1(322 - LH / 2), width: LW, height: f1(LH) }, lmask);
+  const echoG = el('g', { id: 'logoEcho', visibility: 'hidden' }, front);
+  W.echo = RAINBOW_REV.map((col, i) => {
+    const g = el('g', {}, echoG);
+    el('rect', { x: f1(200 - LW / 2 - 4), y: f1(322 - LH / 2 - 4), width: f1(LW + 8), height: f1(LH + 8), fill: col, mask: 'url(#logoShape)' }, g);
+    return { g, k: RAINBOW.length - i };
+  });
+  W.logo = el('image', { id: 'logo', href: '../assets/logo.png', x: f1(200 - LW / 2), y: f1(322 - LH / 2), width: LW, height: f1(LH) }, front);
+  W.logoBox = { x: 200 - LW / 2, y: 322 - LH / 2, w: LW, h: LH };
+
+  const branches = el('g', { id: 'branches' }, front);
+  WREATH.forEach(([deg, type, R, cols, dr], idx) => {
+    const j = (rnd() - 0.5) * 6, [bx, by] = ringPt(deg + j, 0), [x, y] = ringPt(deg + j, dr), p = W.fracAt(deg + j);
+    if (Math.hypot(x - bx, y - by) > 4) W.branches.push({ p, el: el('path', { class: 'ln', d: `M${f1(bx)},${f1(by)} Q${f1((bx + x) / 2 + (rnd() - 0.5) * 8)},${f1((by + y) / 2 + (rnd() - 0.5) * 8)} ${f1(x)},${f1(y)}`, stroke: C.stem }, branches) });
+    const rot = f1(rnd() * 360);
+    const g = el('g', { class: `flower ${type}`, transform: `translate(${f1(x)},${f1(y)}) rotate(${rot})` }, $(type === 'accent' ? '#accentNodes' : '#bloomNodes'));
+    Flowers[type](g, R, type === 'accent' ? null : type === 'ranunculus' ? PAL_RINGS[idx % 8] : type === 'poppy' ? [C.red, C.pink] : PAL_WARM[idx % 8]);
+    W.flowers.push({ el: g, type, R, idx, p, xf: f1(x), yf: f1(y), rf: rot, n: { x: f1(x), y: f1(y), z: 0, r: rot } });
+  });
+  // Pollen (statisk i sluttbildet)
+  for (let i = 0; i < 46; i++){
+    const [x, y] = ringPt(rnd() * 360, (rnd() - 0.5) * 90);
+    W.pollen.push(el('circle', { cx: f1(x), cy: f1(y), r: f1(0.7 + rnd() * 1.5), fill: rnd() < 0.7 ? C.mustard : C.cream, opacity: f1(0.35 + rnd() * 0.55) }, $('#pollenPlane')));
+  }
+  buildExtras(W, back, front);
+  return W;
+}
+
+/* ---------- Maksimalistiske lag rundt heltene (egen rng, så heltegeometrien står fast) ---------- */
+const PAL_WARM = [[C.pink, C.yellow], [C.orange, C.red], [C.cyan, C.blue], [C.green, C.yellow], [C.purple, C.pink], [C.red, C.orange], [C.yellow, C.orange], [C.blue, C.cyan]];
+const PAL_RINGS = [0, 1, 2, 3, 4, 5, 6, 7].map(i => [0, 1, 2, 3].map(k => RAINBOW[(i + k * 2) % 8]));
+const LEAF_COLS = ['#3F8F5C', C.green, '#2E6B55', '#7DBB5A'];
+const BERRY_COLS = [C.red, C.redD, '#C2452A'];
+function leafLance(g, L, w, col){ el('path', { d: `M0,0 Q${f1(L / 2)},${f1(-w)} ${f1(L)},0 Q${f1(L / 2)},${f1(w)} 0,0Z`, fill: col }, g); el('path', { class: 'ln', d: `M0,0 L${f1(L * .85)},0`, stroke: C.stem }, g); }
+function leafFrond(g, L, col){
+  el('path', { class: 'ln', d: `M0,0 L${f1(L)},0`, stroke: C.stem }, g);
+  for (let i = 1; i <= 6; i++){
+    const x = L * i / 7, l = L * 0.34 * (1 - i / 9);
+    [-1, 1].forEach(s => el('path', { d: `M0,0 Q${f1(l / 2)},${f1(-l * .3)} ${f1(l)},0 Q${f1(l / 2)},${f1(l * .3)} 0,0Z`, fill: col }, el('g', { transform: `translate(${f1(x)},0) rotate(${s * 50})` }, g)));
+  }
+}
+function leafRound(g, col){ el('path', { class: 'ln', d: 'M0,0 L16,0', stroke: C.stem }, g); el('circle', { cx: 6, cy: -3, r: 4.6, fill: col }, g); el('circle', { cx: 13, cy: 2, r: 3.8, fill: col }, g); }
+function colsFor(type, pick){
+  return type === 'target' || type === 'ranunculus' ? pick(PAL_RINGS) : type === 'berries' ? BERRY_COLS : type === 'stripeSun' ? [pick([C.mustard, C.orange, C.coral])] : pick(PAL_WARM);
+}
+function buildExtras(W, back, front){
+  const xr = rng(99), pick = a => a[Math.floor(xr() * a.length)], LB = W.logoBox;
+  const xb = el('g', { id: 'extraBack' }, back), xf = el('g', { id: 'extraFront' }, front);
+  W.extras = []; W.garlands = [];
+  const hitsLogo = (x, y, r) => x + r > LB.x - 6 && x - r < LB.x + LB.w + 6 && y + r > LB.y - 6 && y - r < LB.y + LB.h + 6;
+  const fits = (x, y, r) => x - r > 3 && x + r < 397 && y - r > 4;
+  const ringOk = deg => { const a = ((deg % 360) + 360) % 360; return a < 72 || a > 108; };   // bunnen er buketten
+  const add = (parent, x, y, rot, p, build) => {
+    const g = el('g', { transform: `translate(${f1(x)},${f1(y)}) rotate(${f1(rot)})` }, parent); build(g);
+    W.extras.push({ el: g, x: f1(x), y: f1(y), rot: f1(rot), p: p * 0.9, k: 1 });
+  };
+  const bloomType = (g, type, R) => Flowers[type](g, R, colsFor(type, pick));
+
+  // Bølgete solstråler i brunt bak alt (sol/bølge-plakaten)
+  const rays = el('g', {}, null), N = 28, wv = t => 0.14 * Math.sin(t * 2.4);
+  for (let i = 0; i < N; i += 2){
+    const a0 = i / N * Math.PI * 2, a1 = (i + 1) / N * Math.PI * 2, L = [], R = [];
+    for (let s = 0; s <= 12; s++){
+      const t = 1.32 + s / 12 * 2.8, w = wv(t);
+      L.push([200 + RING.rx * t * Math.cos(a0 + w), 330 + RING.ry * t * Math.sin(a0 + w)]);
+      R.unshift([200 + RING.rx * t * Math.cos(a1 + w), 330 + RING.ry * t * Math.sin(a1 + w)]);
+    }
+    el('path', { d: 'M' + L.concat(R).map(p => `${f1(p[0])},${f1(p[1])}`).join(' L') + 'Z', fill: ['#2E1A2C', '#1E1E34', '#14292E', '#1A2A1C', '#2C2914', '#30200F', '#301616'][(i / 2) % 7] }, rays);
+  }
+  $('#haloNodes').insertBefore(rays, $('#haloNodes').firstChild);
+  W.rays = { el: rays, z: 0, k: 1, op: 1, rot: 0 };
+
+  // Blader, bregner og eukalyptus tett langs hele kransen
+  for (let deg = 110; deg <= 430; deg += 6.5){
+    if (!ringOk(deg)) continue;
+    const p = W.fracAt(deg);
+    for (const s of [-1, 1]){
+      const [x, y] = ringPt(deg + (xr() - .5) * 4, (xr() - 0.3) * 14), rot = deg + s * (25 + xr() * 45), kind = xr(), col = pick(LEAF_COLS);
+      add(xb, x, y, rot, p, g => kind < .55 ? leafLance(g, 18 + xr() * 13, 4.5 + xr() * 2.5, col) : kind < .82 ? leafFrond(g, 22 + xr() * 12, col) : leafRound(g, col));
+    }
+  }
+  // Grasstrå med frø som stikker ut
+  for (let deg = 118; deg <= 422; deg += 17){
+    if (!ringOk(deg)) continue;
+    const [x, y] = ringPt(deg, 4), L = 28 + xr() * 26, rot = deg + (xr() - .5) * 30;
+    if (!fits(x + Math.cos(rot * Math.PI / 180) * L, y + Math.sin(rot * Math.PI / 180) * L, 3)) continue;
+    add(xb, x, y, rot, W.fracAt(deg), g => {
+      let d = `M0,0 Q${f1(L * .5)},${f1((xr() - .5) * 8)} ${f1(L)},0`;
+      for (let i = 0; i < 4; i++){ const tx = f1(L * (0.55 + i * 0.13)); d += ` M${tx},0 l5,-4 M${tx},0 l5,4`; }
+      el('path', { class: 'ln', d, stroke: xr() < .5 ? C.kraftL : C.cream }, g);
+      el('circle', { cx: f1(L), cy: 0, r: 2.2, fill: C.mustard }, g);
+    });
+  }
+  // Indre ring: små blomster og bær (holder seg unna logoen)
+  for (let deg = 116; deg <= 424; deg += 10.5){
+    if (!ringOk(deg)) continue;
+    const R = 5 + xr() * 6, [x, y] = ringPt(deg + (xr() - .5) * 5, -26 - xr() * 8), type = pick(['accent', 'berries', 'starburst', 'target', 'accent', 'tulip']);
+    if (hitsLogo(x, y, R)) continue;
+    add(xf, x, y, type === 'tulip' || type === 'berries' ? deg + 90 : xr() * 360, W.fracAt(deg), g => bloomType(g, type, R));
+  }
+  // Ytre ring: 70-tallsformer – stripesoler, blinker, cosmos, stjerner, tulipaner
+  for (let deg = 114; deg <= 426; deg += 12.5){
+    if (!ringOk(deg)) continue;
+    let R = 10 + xr() * 8, dr = 24 + xr() * 12, j = (xr() - .5) * 6, [x, y] = ringPt(deg + j, dr);
+    while (!fits(x, y, R) && dr > 8){ dr -= 4; R = Math.max(8, R - 1); [x, y] = ringPt(deg + j, dr); }
+    if (!fits(x, y, R)) continue;
+    const type = pick(['cosmos', 'starburst', 'target', 'stripeSun', 'tulip', 'cosmos', 'target', 'berries']);
+    add(xf, x, y, type === 'tulip' || type === 'berries' ? deg + j + 90 : xr() * 360, W.fracAt(deg), g => bloomType(g, type, R));
+  }
+  // Girlandere som henger ned langs vasen
+  [[1, 118], [-1, 62]].forEach(([s, deg]) => {
+    const [x0, y0] = ringPt(deg, 4), X = v => 200 + s * (v - 200);
+    const P = [[x0, y0], [X(60), 600], [X(112), 700], [X(46), 784]];
+    const bez = u => { const m = 1 - u; return [0, 1].map(i => m * m * m * P[0][i] + 3 * m * m * u * P[1][i] + 3 * m * u * u * P[2][i] + u * u * u * P[3][i]); };
+    W.garlands.push({ p0: 0.1, el: el('path', { class: 'ln', d: `M${f1(x0)},${f1(y0)} C${P.slice(1).map(p => `${f1(p[0])},${f1(p[1])}`).join(' ')}`, stroke: C.stem }, xb) });
+    for (let i = 1; i <= 11; i++){
+      const u = i / 12, [x, y] = bez(u), [x2, y2] = bez(Math.min(1, u + 0.01)), ang = Math.atan2(y2 - y, x2 - x) * 180 / Math.PI, p = (0.1 + 0.36 * u) / 0.9;
+      [-1, 1].forEach(sd => add(xb, x, y, ang + sd * (40 + xr() * 30), p, g => xr() < .6 ? leafLance(g, 14 + xr() * 9, 4 + xr() * 2, pick(LEAF_COLS)) : leafFrond(g, 18 + xr() * 8, pick(LEAF_COLS))));
+      if (i % 2 === 0){ const type = pick(['starburst', 'accent', 'cosmos', 'target']), R = 6 + xr() * 5; add(xf, x + s * 6, y, xr() * 360, p + 0.02, g => bloomType(g, type, R)); }
+      if (i === 11) add(xf, x, y + 6, 180, p + 0.04, g => Flowers.tulip(g, 10, [C.coral, C.red]));   // hengende tulipan nederst
+    }
+  });
+}
+
+/* ====================== VEKST: 2,5D-showreel synket mot outroen ======================
+   Akt 1  0–2,5    Gnisten: kapillær i petrol, knoppene slår ut
+   Akt 2  2,5–10   Stilkene skyter: stripebånd gjennom rommet, kamera løftes og trekker seg bakover
+   Akt 3a 10–12,6  Dykket inn i phyllotaxis-spiralen, punch-through
+   Akt 3b 12,6–21  Blomstring på flere dybdeplan, bånd og streker forbi kamera
+   Akt 4  21–26,5  Klimaks: dybden kollapser, blomstene lander i kransen, logoen avsløres av rankene
+   Akt 5  26,5–40  Pust (stripebuene pulserer på 32,8 s) og sluttbildet holdes */
+const G = { tl: null, W: null, on: false, idle: false, start: 0, t: 0, dur: OUTRO_FALLBACK, clock: 'perf', replayShown: false,
+  vine: { p: 0 }, solid: { v: 0 }, lastZ: 0, velZ: 0, buds: null, rows: [] };
+const fx = { streak: 0, pollen: 0, fall: 0, shapes: 0 };
+const VINE_T0 = 23.0, VINE_D = 3.2;
+const easeMain = gsap.parseEase(EASE);
+function invEase(p){ let lo = 0, hi = 1; for (let i = 0; i < 28; i++){ const m = (lo + hi) / 2; if (easeMain(m) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
+const vineTime = p => VINE_T0 + VINE_D * invEase(p);
+
+// Bånd gjennom rommet: 3D-kurver (u = 0…1) som tegnes som komethaler
+const RIB_WARM = RAINBOW, RIB_BROWN = RAINBOW_REV, RIB_TEAL = [C.cyan, C.blue, C.purple];
+function helix(o){ return u => { const a = o.w * u * Math.PI * 2 + o.ph, r = o.A * (o.grow ? 0.25 + u : 1);
+  return [o.p[0] + o.d[0] * u + r * Math.cos(a), o.p[1] + o.d[1] * u + r * Math.sin(a) * 0.3, o.p[2] + o.d[2] * u + r * Math.sin(a)]; }; }
+function streamer(o){ return u => { const a = o.w * u * Math.PI * 2 + o.ph;
+  return [o.x0 + (o.x1 - o.x0) * u + o.A * Math.cos(a), o.y0 + (o.y1 - o.y0) * u + o.A * Math.sin(a), o.z0 + (o.z1 - o.z0) * u]; }; }
+function swirl(o){ return u => { const [x, y] = ringPt(o.a0 + o.turn * u, 0), k = 1 + o.spread * (1 - u);
+  return [200 + (x - 200) * k, 330 + (y - 330) * k, o.z0 * (1 - u)]; }; }
+const B0 = [200, 548, 0];
+const RIBBONS = [
+  // Akt 2: ut av buketten på slagene – noen tett forbi kamera, noen dypt inn i rommet
+  { t: 2.5,  dur: 3.0, tail: .45, cols: RIB_WARM,  front: true,  f: helix({ p: B0, d: [-90, -188, -1000], A: 70, w: 1.2, ph: 0, grow: 1 }) },
+  { t: 3.3,  dur: 3.4, tail: .4,  cols: RIB_BROWN, front: false, f: helix({ p: B0, d: [-80, -950, 1500], A: 140, w: 1.0, ph: 2 }) },
+  { t: 4.1,  dur: 3.0, tail: .45, cols: RIB_WARM,  front: true,  f: helix({ p: B0, d: [100, -218, -900], A: 80, w: -1.1, ph: 1, grow: 1 }) },
+  { t: 4.9,  dur: 3.6, tail: .4,  cols: RIB_BROWN, front: false, f: helix({ p: B0, d: [160, -900, 1900], A: 160, w: -0.9, ph: 3 }) },
+  { t: 5.7,  dur: 2.8, tail: .5,  cols: RIB_TEAL,  front: true,  f: helix({ p: B0, d: [-10, -248, -1200], A: 60, w: 1.5, ph: 4, grow: 1 }) },
+  { t: 6.5,  dur: 3.4, tail: .45, cols: RIB_WARM,  front: false, f: helix({ p: B0, d: [-320, -560, 1000], A: 100, w: 0.8, ph: 5 }) },
+  { t: 7.3,  dur: 3.0, tail: .45, cols: RIB_WARM,  front: true,  f: helix({ p: B0, d: [130, -128, -700], A: 60, w: -1.3, ph: 2, grow: 1 }) },
+  { t: 8.1,  dur: 3.6, tail: .4,  cols: RIB_BROWN, front: false, f: helix({ p: B0, d: [-140, -760, 2300], A: 180, w: 0.7, ph: 1 }) },
+  // Akt 2: bånd fra dypet som suser tett forbi kameraet mens det trekker seg bakover
+  { t: 2.9,  dur: 2.4, tail: .55, cols: RIB_WARM,  front: true, f: streamer({ x0: 60,  x1: 250, y0: 200, y1: 520, z0: 2200, z1: -1100, A: 60, w: 0.6, ph: 0 }) },
+  { t: 5.3,  dur: 2.6, tail: .55, cols: RIB_BROWN, front: true, f: streamer({ x0: 360, x1: 170, y0: 300, y1: 470, z0: 2400, z1: -1300, A: 70, w: -0.5, ph: 1 }) },
+  { t: 6.9,  dur: 2.6, tail: .55, cols: RIB_WARM,  front: true, f: streamer({ x0: 100, x1: 240, y0: 700, y1: 430, z0: 2600, z1: -1400, A: 80, w: 0.7, ph: 2 }) },
+  { t: 8.5,  dur: 2.4, tail: .55, cols: RIB_TEAL,  front: true, f: streamer({ x0: 330, x1: 180, y0: 150, y1: 400, z0: 2600, z1: -1500, A: 50, w: -0.8, ph: 3 }) },
+  { t: 9.3,  dur: 2.4, tail: .55, cols: RIB_WARM,  front: true, f: streamer({ x0: 40,  x1: 220, y0: 420, y1: 360, z0: 2800, z1: -1500, A: 90, w: 0.5, ph: 4 }) },
+  { t: 3.7,  dur: 3.0, tail: .5,  cols: RIB_WARM,  front: false, f: helix({ p: B0, d: [260, -700, 1300], A: 120, w: -0.8, ph: 2 }) },
+  { t: 6.1,  dur: 2.8, tail: .5,  cols: RIB_BROWN, front: true,  f: helix({ p: B0, d: [-200, -160, -1100], A: 90, w: 1.0, ph: 3, grow: 1 }) },
+  { t: 7.7,  dur: 2.8, tail: .5,  cols: RIB_WARM,  front: true,  f: streamer({ x0: 380, x1: 140, y0: 640, y1: 330, z0: 2600, z1: -1500, A: 70, w: 0.9, ph: 1 }) },
+  // Akt 3b: flere
+  { t: 14.2, dur: 2.6, tail: .5, cols: RIB_TEAL,  front: true, f: streamer({ x0: 140, x1: 260, y0: 120, y1: 300, z0: 3600, z1: 700, A: 80, w: 1.0, ph: 3 }) },
+  { t: 17.0, dur: 2.6, tail: .5, cols: RIB_WARM,  front: true, f: streamer({ x0: 20,  x1: 200, y0: 300, y1: 310, z0: 3600, z1: 700, A: 110, w: -0.6, ph: 0 }) },
+  { t: 20.4, dur: 2.6, tail: .5, cols: RIB_BROWN, front: true, f: streamer({ x0: 380, x1: 210, y0: 520, y1: 280, z0: 3600, z1: 700, A: 90, w: 0.8, ph: 4 }) },
+  { t: 21.8, dur: 3.0, tail: .5, cols: RIB_WARM,  front: true, f: swirl({ a0: 270, turn: -400, spread: .7, z0: 2200 }) },
+  { t: 22.6, dur: 3.0, tail: .5, cols: RIB_TEAL,  front: true, f: swirl({ a0: 180, turn: 360, spread: 1.1, z0: 2800 }) },
+  { t: 13.8, dur: 2.6, tail: .5, cols: RIB_BROWN, front: true, f: streamer({ x0: 300, x1: 230, y0: 620, y1: 340, z0: 3600, z1: 700, A: 120, w: 0.6, ph: 5 }) },
+  { t: 15.4, dur: 2.6, tail: .5, cols: RIB_WARM,  front: true, f: streamer({ x0: 60,  x1: 190, y0: 380, y1: 280, z0: 3600, z1: 700, A: 90, w: -0.9, ph: 1 }) },
+  { t: 18.6, dur: 2.6, tail: .5, cols: RIB_WARM,  front: true, f: streamer({ x0: 360, x1: 220, y0: 200, y1: 300, z0: 3600, z1: 700, A: 100, w: 0.8, ph: 2 }) },
+  // Akt 3b: fra dypet og tett forbi kamera
+  { t: 13.0, dur: 2.6, tail: .5, cols: RIB_WARM,  front: true, f: streamer({ x0: 40,  x1: 150, y0: 140, y1: 250, z0: 3800, z1: 700, A: 90, w: 0.8, ph: 0 }) },
+  { t: 14.6, dur: 2.6, tail: .5, cols: RIB_BROWN, front: true, f: streamer({ x0: 380, x1: 260, y0: 430, y1: 330, z0: 3800, z1: 700, A: 80, w: -0.7, ph: 1 }) },
+  { t: 16.2, dur: 2.6, tail: .5, cols: RIB_WARM,  front: true, f: streamer({ x0: 120, x1: 170, y0: 560, y1: 360, z0: 3800, z1: 700, A: 100, w: 0.9, ph: 2 }) },
+  { t: 17.8, dur: 2.6, tail: .5, cols: RIB_TEAL,  front: true, f: streamer({ x0: 320, x1: 240, y0: 80,  y1: 230, z0: 3800, z1: 700, A: 70, w: -1.1, ph: 3 }) },
+  { t: 19.4, dur: 2.6, tail: .5, cols: RIB_WARM,  front: true, f: streamer({ x0: 200, x1: 215, y0: 640, y1: 400, z0: 3800, z1: 700, A: 110, w: 0.7, ph: 4 }) },
+  // Akt 4: bånd virvler inn rundt kransen fra dypet
+  { t: 21.4, dur: 3.2, tail: .5, cols: RIB_WARM,  front: true, f: swirl({ a0: 90, turn: 420,  spread: .9, z0: 2600 }) },
+  { t: 22.2, dur: 3.2, tail: .5, cols: RIB_BROWN, front: true, f: swirl({ a0: 90, turn: -420, spread: .9, z0: 2600 }) },
+  { t: 23.0, dur: 3.0, tail: .5, cols: RIB_WARM,  front: true, f: swirl({ a0: 270, turn: 380, spread: .6, z0: 2000 }) }
+];
+// 70vibe: en hel sverm av regnbuebånd i tillegg – fra dypet, forbi kamera og rundt kransen
+{
+  const rr = rng(77);
+  for (let i = 0; i < 30; i++){
+    const act = i < 12 ? 2 : i < 23 ? 3 : 4, cols = rr() < 0.5 ? RAINBOW : RAINBOW_REV;
+    if (act === 2) RIBBONS.push({ t: 2.6 + i * 0.62, dur: 2.4 + rr(), tail: .55, cols, front: rr() < 0.7, f: streamer({
+      x0: 200 + (rr() - .5) * 700, x1: 205 + (rr() - .5) * 280, y0: 470 + (rr() - .5) * 800, y1: 450 + (rr() - .5) * 320,
+      z0: 2400 + rr() * 800, z1: -1700, A: 60 + rr() * 110, w: (rr() < .5 ? -1 : 1) * (0.4 + rr() * 0.9), ph: rr() * 6 }) });
+    else if (act === 3) RIBBONS.push({ t: 12.7 + (i - 12) * 0.74, dur: 2.2 + rr() * 0.8, tail: .55, cols, front: true, f: streamer({
+      x0: 200 + (rr() - .5) * 600, x1: 200 + (rr() - .5) * 240, y0: 290 + (rr() - .5) * 700, y1: 290 + (rr() - .5) * 260,
+      z0: 3400 + rr() * 800, z1: 650, A: 70 + rr() * 120, w: (rr() < .5 ? -1 : 1) * (0.5 + rr() * 0.9), ph: rr() * 6 }) });
+    else RIBBONS.push({ t: 21.1 + (i - 23) * 0.55, dur: 2.6 + rr() * 0.6, tail: .5, cols, front: true, f: swirl({
+      a0: rr() * 360, turn: (rr() < .5 ? -1 : 1) * (300 + rr() * 220), spread: 0.5 + rr() * 0.8, z0: 1800 + rr() * 1400 }) });
+  }
+}
+const RIB_GAP = 3.6, RIB_N = 56;
+function renderRibbon(r){
+  const u1 = Math.min(r.q, 1), u0 = Math.max(0, r.q - r.tail);
+  if (u1 - u0 < 0.004){ if (r.on){ r.paths.forEach(p => p.setAttribute('d', '')); r.on = false; } return; }
+  r.on = true;
+  const P = [];
+  for (let i = 0; i <= RIB_N; i++){ const w = r.f(u0 + (u1 - u0) * i / RIB_N); P.push(proj(w[0], w[1], w[2])); }
+  const n = r.cols.length, ds = new Array(n).fill('');
+  let pen = false, gsum = 0, gn = 0;
+  for (let i = 0; i <= RIB_N; i++){
+    const p = P[i];
+    if (!p || Math.abs(p[0]) > 4000 || Math.abs(p[1]) > 4000){ pen = false; continue; }
+    const a = P[i - 1] || p, b = P[i + 1] || p;
+    let dx = b[0] - a[0], dy = b[1] - a[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+    const gap = clamp(RIB_GAP * p[2], 3.0, 60);    // båndet blir bredere når det nærmer seg kamera
+    gsum += gap; gn++;
+    for (let k = 0; k < n; k++){ const o = (k - (n - 1) / 2) * gap; ds[k] += `${pen ? 'L' : 'M'}${f1(p[0] - dy * o)},${f1(p[1] + dx * o)}`; }
+    pen = true;
+  }
+  // trykte bånd som på VHS-coveret: tykke striper med smale mørke mellomrom
+  const sw = f1(clamp((gn ? gsum / gn : 3) * 0.74, 1.8, 44));
+  r.paths.forEach((path, k) => { path.setAttribute('d', ds[k]); path.style.strokeWidth = sw + 'px'; });
+}
+
+// Hvilken akt hver blomst blomstrer i (WREATH-indekser)
+const BIG = 0;
+const ACT2 = { 3: 3.3, 4: 4.1, 8: 4.9, 9: 5.7, 5: 6.5, 6: 7.3 };
+const ACT3 = [1, 16, 10, 2, 13, 17, 11, 7, 14, 20, 18, 12, 21, 15, 24, 22, 19, 23, 25];
+const ACT3_T = {}; ACT3.forEach((idx, i) => { ACT3_T[idx] = 13.2 + i * 0.38; });
+
+// Startposisjon i rommet for hver blomst, valgt i skjermkoordinater for kameraet i akten
+function scatter(W){
+  const r = rng(21);
+  const pick = (cx, cy, cz, d0, d1, sx0, sx1, sy0, sy1) => {
+    const d = d0 + r() * (d1 - d0), s = F / d, sx = sx0 + r() * (sx1 - sx0), sy = sy0 + r() * (sy1 - sy0);
+    return { x: cx + (sx - 200) / s, y: cy + (sy - 400) / s, z: cz + d };
+  };
+  let side = 0;
+  W.flowers.forEach(fl => {
+    let s;
+    if (fl.idx === BIG) s = { x: 200, y: 250, z: 400 };
+    else if (ACT2[fl.idx] !== undefined){ side ^= 1; s = side ? pick(205, 470, -950, 600, 900, 40, 120, 170, 620) : pick(205, 470, -950, 600, 900, 280, 360, 170, 620); }
+    else s = pick(200, 295, 960, 220, 950, 50, 350, 140, 660);
+    fl.s0 = { ...s, r: fl.rf + (r() - 0.5) * 240 };
+  });
+}
+
+function bloom(tl, fl, t0, big){
+  const g = fl.el;
+  const cores = g.querySelectorAll('g.disc > circle:not(.seed), circle.disc');
+  const petals = [...g.querySelectorAll('.petal')]; if (fl.type === 'ranunculus') petals.reverse();
+  const seeds = g.querySelectorAll('.seed');
+  const isPath = petals.length && petals[0].tagName === 'path';
+  if (cores.length) tl.from(cores, { scale: 0, transformOrigin: '50% 50%', duration: 0.6, ease: EASE_OUT }, t0);
+  if (petals.length) tl.from(petals, { scale: 0, transformOrigin: isPath ? '50% 100%' : '50% 50%', duration: big ? 1.0 : 0.7, ease: EASE_OUT, stagger: (big ? 1.2 : 0.55) / petals.length }, t0 + 0.08);
+  if (seeds.length) tl.from(seeds, { scale: 0, transformOrigin: '50% 50%', duration: big ? 0.5 : 0.4, ease: EASE_OUT, stagger: (big ? 2.4 : 0.6) / seeds.length }, big ? 10.0 : t0 + 0.2);
+}
+
+function setupBuds(){
+  if (G.buds) return;
+  const defs = svg.querySelector('defs'), WARM = [C.pink, C.orange, C.yellow, C.red, C.cyan, C.purple, C.green];
+  G.buds = [...document.querySelectorAll('#stems .bud')].filter(b => b.querySelector('.budfill')).map((g, i) => {
+    const src = g.querySelector('.budfill'), id = 'budClip' + i;
+    const clip = el('circle', { cx: 0, cy: -10, r: 0 }, el('clipPath', { id, clipPathUnits: 'userSpaceOnUse' }, defs));
+    const warm = src.cloneNode(); warm.setAttribute('fill', WARM[i % WARM.length]); warm.setAttribute('clip-path', `url(#${id})`); src.after(warm);
+    return { g, clip };
+  });
+}
+function setupCapillaries(){
+  const stems = document.querySelectorAll('#stems .stem'), firstBud = $('#stems .bud');
+  return [4, 3, 5].map(i => {
+    const c = stems[i].cloneNode(); c.setAttribute('stroke', C.accent); c.classList.remove('stem'); $('#stems').insertBefore(c, firstBud);
+    const L = c.getTotalLength(), seg = L * 0.35;
+    c.style.strokeDasharray = `${f1(seg)} ${f1(L * 2)}`; c.style.strokeDashoffset = f1(seg);
+    return { el: c, L, seg };
+  });
+}
+// Logomasken: horisontale striper (som BB-merket) åpner seg fra sidene i takt med rankehodet, så blir de massive
+function setupMask(W){
+  const b = W.logoBox, m = el('mask', { id: 'logoMask', maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 400, height: 800 }, svg.querySelector('defs'));
+  G.rows = [];
+  for (let y = b.y - 2; y < b.y + b.h + 2; y += 10){
+    let p = 0; while (p < 1 && W.headY(p) > y + 5) p += 0.004;
+    G.rows.push({ y, p, L: el('rect', { x: f1(b.x - 4), y: f1(y), width: 0, height: 6, fill: '#fff' }, m), R: el('rect', { x: f1(b.x + b.w + 4), y: f1(y), width: 0, height: 6, fill: '#fff' }, m) });
+  }
+  W.logo.setAttribute('mask', 'url(#logoMask)');
+}
+function updateMask(){
+  const p = G.vine.p, sv = G.solid.v, b = G.W.logoBox, half = b.w / 2 + 4;
+  for (const r of G.rows){
+    const a = clamp((p - r.p) / 0.12, 0, 1), w = half * (1 - Math.pow(1 - a, 3)) + (sv > 0 ? 1 : 0), h = 6 + 4.8 * sv;
+    r.L.setAttribute('width', f1(w)); r.L.setAttribute('height', f1(h));
+    r.R.setAttribute('x', f1(b.x + b.w + 4 - w)); r.R.setAttribute('width', f1(w)); r.R.setAttribute('height', f1(h));
+  }
+}
+function vineDrive(){
+  const p = G.vine.p, W = G.W;
+  for (const v of W.vines) v.el.style.strokeDashoffset = f1(v.L * (1 - p));
+  for (const lf of W.leaves){
+    const a = clamp((p - lf.p) / 0.06, 0, 1), k = 1 - Math.pow(1 - a, 3);
+    if (k !== lf.k){ lf.k = k; lf.el.setAttribute('transform', `translate(${lf.x},${lf.y}) rotate(${lf.rot}) scale(${k.toFixed(3)})`); }
+  }
+  for (const br of W.branches){ const a = clamp((p - br.p * 0.9) / 0.08, 0, 1); br.el.style.strokeDashoffset = f1(br.L * (1 - a)); }
+  for (const x of W.extras){
+    const a = clamp((p - x.p) / 0.07, 0, 1), k = 1 - Math.pow(1 - a, 3);
+    if (k !== x.k){ x.k = k; x.el.setAttribute('transform', `translate(${x.x},${x.y}) rotate(${f1(x.rot - 90 * (1 - k))}) scale(${k.toFixed(3)})`); }
+  }
+  for (const g of W.garlands){ const a = clamp((p - g.p0) / 0.36, 0, 1); g.el.style.strokeDashoffset = f1(g.L * (1 - a)); }
+  updateMask();
+}
+
+/* 70vibe: morfende regnbueblomster – blomst → stjerne → sol → TV-skjerm → kløver → rose, ett skifte per slag */
+const MORPHS = [
+  th => 0.58 + 0.42 * Math.pow(Math.abs(Math.cos(th * 4)), 0.7),
+  th => 0.4 + 0.6 * Math.pow(Math.abs(Math.cos(th * 2.5)), 6),
+  th => 0.86 + 0.14 * Math.sin(th * 14),
+  th => 0.92 / Math.pow(Math.pow(Math.abs(Math.cos(th)), 4) + Math.pow(Math.abs(Math.sin(th)), 4), 0.25),
+  th => 0.22 + 0.78 * Math.pow(Math.abs(Math.cos(th * 2)), 0.45),
+  th => 0.72 + 0.28 * Math.cos(th * 6)
+];
+const MORPH_N = 84, MORPH_LAYERS = 7;
+function morphPath(fa, fb, e, R){
+  let d = '';
+  for (let i = 0; i < MORPH_N; i++){ const th = i / MORPH_N * Math.PI * 2, r = R * (fa(th) * (1 - e) + fb(th) * e); d += `${i ? 'L' : 'M'}${f1(Math.cos(th) * r)},${f1(Math.sin(th) * r)}`; }
+  return d + 'Z';
+}
+function placeMorph(m){
+  const n = m.n, p = n.k > 0.002 && G.t >= m.tIn - 0.05 ? proj(n.x, n.y, n.z) : null;
+  if (!p){ if (m.vis !== false){ m.el.setAttribute('visibility', 'hidden'); m.vis = false; } return; }
+  if (m.vis !== true){ m.el.setAttribute('visibility', 'visible'); m.vis = true; }
+  m.el.setAttribute('transform', `translate(${f2(p[0])},${f2(p[1])}) scale(${(p[2] * n.k).toFixed(4)}) rotate(${f1(n.r + G.t * m.spin)})`);
+  // formen skifter i andre halvdel av hvert slag og lander på neste slag
+  const ph = Math.max(0, (G.t - 2.5) / 0.8 + m.off), i = Math.floor(ph), e = easeMain(clamp((ph - i - 0.45) / 0.55, 0, 1));
+  const fa = MORPHS[(i + m.s) % MORPHS.length], fb = MORPHS[(i + 1 + m.s) % MORPHS.length];
+  m.layers.forEach((L, k) => { L.setAttribute('d', morphPath(fa, fb, e, m.R * (1 - k * 0.13))); L.setAttribute('fill', RAINBOW[(k + i + m.c) % 8]); });
+}
+
+function buildGrowth(dur){
+  const W = G.W = buildWreath();
+  W.pulses = W.halo.map(h => { const g = h.el.cloneNode(true); $('#haloNodes').appendChild(g); return { el: g, z: 0, k: 1, op: 0 }; });
+  // Bakgrunnsbuer langt inne i rommet (stripebuen fra inspirasjonen) – gir parallaksen, borte før klimaks
+  const BD = RAINBOW;
+  W.backdrops = [
+    [1800, (u, k) => { const a = Math.PI + Math.PI * u, r = 700 + k * 16; return [200 + r * Math.cos(a), 900 + r * Math.sin(a)]; }],
+    [3200, (u, k) => [-900 + 2200 * u, 300 + 500 * Math.sin(u * Math.PI * 1.6 + 0.4) + k * 22]]
+  ].map(([z, fn]) => {
+    const g = el('g', {}, $('#haloNodes'));
+    BD.forEach((col, k) => { const pts = []; for (let i = 0; i <= 48; i++) pts.push(fn(i / 48, k)); el('path', { class: 'ln', d: smooth(pts), stroke: col }, g); });
+    return { el: g, z, k: 1, op: 0 };
+  });
+  W.vines.forEach(v => { v.L = v.el.getTotalLength() + 1; v.el.style.strokeDasharray = `${f1(v.L)} ${f1(v.L)}`; });
+  W.branches.concat(W.garlands).forEach(b => { b.L = b.el.getTotalLength() + 1; b.el.style.strokeDasharray = `${f1(b.L)} ${f1(b.L)}`; });
+  // Blomster som bare finnes på reisen: blomstrer på flere dybdeplan, spinner, og forsvinner før klimaks
+  const tr = rng(55), TT = ['cosmos', 'starburst', 'target', 'stripeSun', 'daisy', 'ranunculus', 'cosmos', 'poppy', 'target', 'starburst', 'tulip', 'cosmos'];
+  const pickT = a => a[Math.floor(tr() * a.length)];
+  const pickIn = (cx, cy, cz, d0, d1) => { const d = d0 + tr() * (d1 - d0), s = F / d; return { x: cx + (30 + tr() * 340 - 200) / s, y: cy + (110 + tr() * 600 - 400) / s, z: cz + d }; };
+  G.transients = [];
+  for (let i = 0; i < 22; i++){
+    const act2 = i < 10, type = TT[i % TT.length], R = type === 'phyllo' ? 24 : 14 + tr() * 18;
+    const g = el('g', { class: `flower ${type}` }, null); $('#bloomNodes').insertBefore(g, $('#bloomNodes').firstChild);
+    Flowers[type](g, R, type === 'poppy' ? [C.red, '#C2452A'] : type === 'phyllo' || type === 'daisy' ? pickT(PAL_WARM) : colsFor(type, pickT));
+    const s0 = act2 ? pickIn(205, 470, -950, 480, 1000) : pickIn(200, 295, 960, 200, 900);
+    const t = act2 ? 2.9 + i * 0.75 : 13.4 + (i - 10) * 0.55;
+    G.transients.push({ el: g, type, R, t, tb: t, n: { ...s0, r: tr() * 360, op: 1 } });
+  }
+  // Morfende regnbueblomster i rommet; i klimaks flyr de inn og blir til kransens blomster
+  const mr = rng(31), heroes = W.flowers.filter(f => f.type !== 'accent');
+  G.morphs = [];
+  for (let i = 0; i < 20; i++){
+    const act2 = i < 11, g = el('g', {}, $('#morphNodes'));
+    const layers = []; for (let k = 0; k < MORPH_LAYERS; k++) layers.push(el('path', { d: '' }, g));
+    const s0 = act2 ? pickIn(205, 470, -950, 420, 1100) : pickIn(200, 295, 960, 220, 1000);
+    G.morphs.push({ el: g, layers, R: 26 + mr() * 38, tIn: act2 ? 2.7 + i * 0.68 : 13.0 + (i - 11) * 0.85, s: i % MORPHS.length, c: i % 8, off: mr(), spin: (mr() - .5) * 40,
+      hero: heroes[(i * 7) % heroes.length], n: { ...s0, r: mr() * 360, k: 0 } });
+  }
+  // Sjokkbølger på de store anslagene
+  const WAVE_T = [2.5, 10.0, 12.6, 21.0, 24.4];
+  G.waves = WAVE_T.map(() => { const g = el('g', { visibility: 'hidden' }, $('#ribFront')); RAINBOW.forEach((c, k) => el('circle', { class: 'ln', r: 40 + k * 6, stroke: c, style: 'stroke-width:4.4px' }, g)); return { el: g, k: 0.3, op: 0 }; });
+  scatter(W); setupBuds(); setupMask(W);
+  const caps = setupCapillaries();
+  RIBBONS.forEach(r => {
+    if (r.paths) return;
+    const g = el('g', {}, $(r.front ? '#ribFront' : '#ribBack'));
+    r.paths = r.cols.map(c => el('path', { class: 'ln', stroke: c, d: '' }, g)); r.q = 0; r.on = false;
+  });
+  // Kransplanet holdes helt ute av tegningen til klimakset – elementer skalert til 0 koster også
+  gsap.set(['#wreathBack', '#wreathFront'], { visibility: 'hidden' });
+
+  const tl = gsap.timeline({ paused: true });
+  tl.set(['#wreathBack', '#wreathFront'], { visibility: 'visible' }, VINE_T0 - 0.1);
+  // Akt 1 – gnisten
+  tl.fromTo(cam, { x: CAM_VASE.x, y: CAM_VASE.y, z: CAM_VASE.z, roll: 0 }, { x: 213, y: 582, z: -600, roll: 0, duration: 2.5, ease: EASE }, 0);
+  tl.to('#waterBody', { attr: { 'fill-opacity': 0.34 }, duration: 1.6, ease: EASE }, 0.2);
+  caps.forEach((c, i) => tl.fromTo(c.el, { strokeDashoffset: c.seg }, { strokeDashoffset: -c.L, duration: 2.0, ease: EASE }, 0.2 + i * 0.12));
+  [[2, 1, 3], [0, 4, 5, 6]].forEach((group, gi) => group.forEach((b, j) => {
+    const at = (gi ? 2.5 : 1.9) + j * 0.07;
+    tl.to(G.buds[b].clip, { attr: { r: 26 }, duration: 0.8, ease: EASE_OUT }, at);
+    tl.to(G.buds[b].g, { scale: 1.22, transformOrigin: '50% 100%', duration: 0.22, ease: EASE_OUT, yoyo: true, repeat: 1 }, at);
+  }));
+  // Akt 2 – stilkene skyter
+  tl.to(cam, { x: 200, y: 380, z: -1300, roll: -3, duration: 7.5, ease: EASE }, 2.5);
+  tl.fromTo(fx, { streak: 0, pollen: 0, fall: 0, shapes: 0 }, { streak: 0.55, pollen: 0.5, shapes: 0.85, duration: 1.5, ease: EASE }, 2.5);
+  W.backdrops.forEach((b, i) => { tl.fromTo(b, { op: 0 }, { op: 0.9, duration: 2, ease: EASE }, 2.5 + i * 0.6); tl.to(b, { op: 0, duration: 1.6, ease: EASE }, 21.2); });
+  // Akt 3a – dykket inn i frøspiralen (akselererer helt til vi slår gjennom)
+  tl.to(cam, { x: 200, y: 250, z: 300, roll: 2, duration: 2.6, ease: EASE_IN }, 10);
+  tl.to(fx, { streak: 1, shapes: 1, duration: 1.4, ease: EASE }, 10.8);
+  // Akt 3b – blomstring på flere plan
+  tl.to(cam, { x: 205, y: 280, z: 900, roll: 12, duration: 2.4, ease: EASE_OUT }, 12.6);
+  tl.to(fx, { streak: 0.5, pollen: 1, duration: 1.6, ease: EASE }, 13);
+  tl.to(cam, { x: 232, y: 290, z: 960, roll: -14, duration: 3, ease: EASE }, 15);
+  tl.to(cam, { x: 178, y: 300, z: 1000, roll: 9, duration: 3, ease: EASE }, 18);
+  // Akt 4 – klimaks: kameraet trekker seg ut og lander eksakt på sluttutsnittet
+  tl.call(stopSway, null, 21);
+  tl.to(cam, { x: 200, y: 400, z: -F, roll: 0, duration: 5.5, ease: EASE }, 21);
+  tl.to(fx, { streak: 0.9, shapes: 0.7, duration: 1, ease: EASE }, 21);
+  tl.to(fx, { streak: 0, shapes: 0, duration: 2, ease: EASE }, 25);
+  tl.to('#waterBody', { attr: { 'fill-opacity': 0.2 }, duration: 1.6, ease: EASE }, 25);
+  tl.fromTo(G.vine, { p: 0 }, { p: 1, duration: VINE_D, ease: EASE, onUpdate: vineDrive }, VINE_T0);
+  tl.fromTo(G.solid, { v: 0 }, { v: 1, duration: 0.7, ease: EASE, onUpdate: updateMask }, 26.1);
+  tl.set(W.logo, { attr: { mask: 'none' } }, 26.9);
+  W.halo.forEach((h, k) => tl.fromTo(h, { z: 700 + k * 400, op: 0 }, { z: 0, op: 1, duration: 2.6, ease: EASE_OUT }, 24 + k * 0.15));
+  tl.fromTo('#pollenPlane', { opacity: 0 }, { opacity: 1, duration: 2, ease: EASE }, 25.8);
+  // Blomstene: blomstrer i sin akt, flyr så til plassen sin når ranken når dem
+  W.flowers.forEach(fl => {
+    const big = fl.idx === BIG, tb = big ? 8.8 : (ACT2[fl.idx] !== undefined ? ACT2[fl.idx] : ACT3_T[fl.idx]);
+    fl.tb = tb;
+    bloom(tl, fl, tb, big);
+    const land = vineTime(fl.p) + 0.35, start = Math.max(20.8, land - (big ? 3.2 : 2.4));
+    tl.fromTo(fl.n, { x: fl.s0.x, y: fl.s0.y, z: fl.s0.z, r: fl.s0.r }, { x: fl.xf, y: fl.yf, z: 0, r: fl.rf, duration: land - start, ease: EASE }, start);
+  });
+  RIBBONS.forEach(r => tl.fromTo(r, { q: 0 }, { q: 1 + r.tail, duration: r.dur, ease: EASE_OUT }, r.t));
+  // Reiseblomstene
+  G.transients.forEach(fl => {
+    bloom(tl, fl, fl.t, false);
+    tl.to(fl.n, { r: fl.n.r + 160, z: fl.n.z - 260, duration: 9, ease: EASE }, fl.t);
+    tl.to(fl.n, { op: 0, duration: 1.2, ease: EASE }, 20.8 + (fl.t % 1.2));
+  });
+  // Morfene: popper inn, driver og spinner, flyr til en heltblomst og forsvinner idet den lander
+  G.morphs.forEach(m => {
+    tl.fromTo(m.n, { k: 0 }, { k: 1, duration: 0.7, ease: EASE_OUT }, m.tIn);
+    tl.to(m.n, { z: m.n.z - 280, duration: Math.min(9, 20.8 - m.tIn), ease: EASE }, m.tIn);
+    const land = vineTime(m.hero.p) + 0.35, start = Math.max(20.9, land - 2.4);
+    tl.to(m.n, { x: m.hero.xf, y: m.hero.yf, z: 0, duration: land - start, ease: EASE }, start);
+    tl.to(m.n, { k: 0, duration: 0.45, ease: EASE_IN }, land - 0.45);
+  });
+  // Regnbue-ekstruderingen skyves ut bak logoen når den er hel
+  G.echo = { d: 0 };
+  tl.set('#logoEcho', { visibility: 'visible' }, 26.2);
+  tl.fromTo(G.echo, { d: 0 }, { d: 1.0, duration: 1.4, ease: EASE_OUT }, 26.2);
+  // Sjokkbølger, slag-kick og solstråler som spinner seg på plass
+  WAVE_T.forEach((t, i) => { const w = G.waves[i]; tl.set(w, { k: 0.3, op: 1 }, t); tl.to(w, { k: 7, op: 0, duration: 1.5, ease: EASE_OUT }, t); });
+  for (let b = 0; 2.5 + b * 0.8 < 26; b++){ const t = 2.5 + b * 0.8; tl.set(cam, { kick: b % 4 === 0 ? 0.09 : 0.045 }, t); tl.to(cam, { kick: 0, duration: 0.6, ease: EASE_OUT }, t); }
+  tl.fromTo(W.rays, { op: 0 }, { op: 1, duration: 3, ease: EASE }, 2.5);
+  tl.fromTo(W.rays, { rot: -70 }, { rot: 0, duration: 24, ease: EASE }, 2.5);
+  // Akt 5 – pust: pollen faller, stripebuene pulserer utover på anslaget
+  tl.to(fx, { fall: 1, duration: 2, ease: EASE }, 28);
+  tl.to(fx, { pollen: 0, duration: 5, ease: EASE }, 29);
+  W.pulses.forEach((pu, i) => {
+    tl.set(pu, { k: 1, op: 0.75 }, 32.8 + i * 0.1);
+    tl.to(pu, { k: 1.22, op: 0, duration: 1.8, ease: EASE_OUT }, 32.8 + i * 0.1);
+  });
+  tl.set({}, {}, dur);                       // timelinen er nøyaktig like lang som outroen
+  G.tl = tl;
+  // Utvikling: ?off=rays,extras,trans,shapes slår av lag for ytelsesmåling
+  const OFF = (params.get('off') || '').split(',');
+  if (OFF.includes('rays')) W.rays.el.style.display = 'none';
+  if (OFF.includes('extras')) ['#extraBack', '#extraFront'].forEach(s => { $(s).style.display = 'none'; });
+  if (OFF.includes('trans')) G.transients.forEach(t => { t.el.style.display = 'none'; });
+  if (OFF.includes('shapes')) shapes.length = 0;
+  G.noShapes = OFF.includes('shapes');
+  vineDrive(); renderGrowth(0);              // plasser alle noder i starttilstand (skjult) med en gang
+  return tl;
+}
+
+function placeFlower(fl){
+  const n = fl.n, op = n.op === undefined ? 1 : n.op, born = fl.tb === undefined || G.t >= fl.tb - 0.05;
+  const p = op > 0.002 && born ? proj(n.x, n.y, n.z) : null;          // ikke tegnet før den blomstrer
+  if (!p){ if (fl.vis !== false){ fl.el.setAttribute('visibility', 'hidden'); fl.vis = false; } return; }
+  if (fl.vis !== true){ fl.el.setAttribute('visibility', 'visible'); fl.vis = true; }
+  fl.el.setAttribute('transform', `translate(${f2(p[0])},${f2(p[1])}) scale(${p[2].toFixed(4)}) rotate(${f1(n.r)})`);
+  fl.el.style.setProperty('--cam', p[2].toFixed(4));
+  const fog = (p[3] <= 1400 ? 1 : Math.max(0.3, 1 - (p[3] - 1400) / 2200)) * op;   // luftperspektiv: langt borte = mørkere
+  if (fog !== fl.fog){ fl.fog = fog; fl.el.setAttribute('opacity', fog.toFixed(3)); }
+}
+function placeNode(h){
+  if (h.op <= 0.002){ if (h.el._vis !== false){ h.el.setAttribute('visibility', 'hidden'); h.el._vis = false; } return; }
+  if (placePlane(h.el, h.z, h.k, 200, 330, h.rot || 0)) h.el.setAttribute('opacity', h.op.toFixed(3));
+}
+// Sjokkbølger: stripete ringer i skjermrom som slår ut på de store anslagene
+function placeWave(w){
+  if (w.op <= 0.002){ if (w.el._vis !== false){ w.el.setAttribute('visibility', 'hidden'); w.el._vis = false; } return; }
+  if (w.el._vis !== true){ w.el.setAttribute('visibility', 'visible'); w.el._vis = true; }
+  w.el.setAttribute('transform', `translate(200,400) scale(${w.k.toFixed(4)})`);
+  w.el.style.setProperty('--cam', w.k.toFixed(4));
+  w.el.setAttribute('opacity', w.op.toFixed(3));
+}
+function renderGrowth(dt){
+  renderCam();
+  placePlane($('#pollenPlane'), 0);
+  const W = G.W;
+  placeNode(W.rays); W.backdrops.forEach(placeNode); W.halo.forEach(placeNode); W.pulses.forEach(placeNode);
+  G.morphs.forEach(placeMorph);
+  G.transients.forEach(placeFlower); W.flowers.forEach(placeFlower);
+  if (G.echo && G.echo.d !== G.echoD){ G.echoD = G.echo.d; W.echo.forEach(e => e.g.setAttribute('transform', `translate(${f1(e.k * G.echo.d * 0.85)},${f1(e.k * G.echo.d)})`)); }
+  G.waves.forEach(placeWave);
+  RIBBONS.forEach(renderRibbon);
+  if (dt > 0){ const v = (cam.z - G.lastZ) / dt; G.velZ += (v - G.velZ) * Math.min(1, dt * 8); }
+  G.lastZ = cam.z;
+  renderFx(dt);
+}
+
+/* Partikler på canvas: streker langs dybden (linjer som skyter gjennom rommet) og pollen med parallakse */
+const fxCv = $('#fx'), fxCtx = fxCv.getContext('2d');
+let fxM = { a: 1, e: 0, f: 0 }, fxDpr = 1, fxDirty = false, streaks = [], motes = [], shapes = [];
+// 70-tallsformer og blader som virvler gjennom rommet: 0 skive, 1 ring, 2 halvsirkel, 3 stjerne, 4 striper, 5 blad
+const SHAPE_COLS = RAINBOW.concat([C.cream]);
+function drawShape(c, t, s){
+  c.beginPath();
+  if (t === 0){ c.arc(0, 0, s, 0, Math.PI * 2); c.fill(); }
+  else if (t === 1){ c.arc(0, 0, s, 0, Math.PI * 2); c.stroke(); }
+  else if (t === 2){ c.arc(0, 0, s, 0, Math.PI); c.closePath(); c.fill(); }
+  else if (t === 3){ for (let i = 0; i < 10; i++){ const a = i * Math.PI / 5 - Math.PI / 2, r = i % 2 ? s * 0.45 : s; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); c.fill(); }
+  else if (t === 4){ for (let k = -1; k <= 1; k++){ c.moveTo(-s, k * s * 0.45); c.lineTo(s, k * s * 0.45); } c.stroke(); }
+  else { c.moveTo(-s, 0); c.quadraticCurveTo(0, -s * 0.55, s, 0); c.quadraticCurveTo(0, s * 0.55, -s, 0); c.fill(); }
+}
+const STREAK_COLS = RAINBOW.concat([C.cream, C.cream]), MOTE_COLS = [C.yellow, C.cream, C.pink, C.cyan];
+function sizeFx(){
+  fxDpr = Math.min(2, window.devicePixelRatio || 1);
+  fxCv.width = Math.round(innerWidth * fxDpr); fxCv.height = Math.round(innerHeight * fxDpr);
+  const m = svg.getScreenCTM(); if (m) fxM = { a: m.a, e: m.e, f: m.f };
+}
+addEventListener('resize', sizeFx); sizeFx();
+function spawnP(p, d0, d1){ const d = d0 + Math.random() * (d1 - d0); p.z = cam.z + d; p.x = cam.x + (Math.random() - 0.5) * d * 0.62; p.y = cam.y + (Math.random() - 0.5) * d * 1.15; }
+function clearFx(){ fxCtx.setTransform(1, 0, 0, 1, 0, 0); fxCtx.clearRect(0, 0, fxCv.width, fxCv.height); }
+function resetFx(){
+  streaks = Array.from({ length: 200 }, (_, i) => { const p = { c: i % STREAK_COLS.length }; spawnP(p, 60, 2800); return p; });
+  motes = Array.from({ length: 220 }, (_, i) => { const p = { c: i % MOTE_COLS.length, r: 0.7 + Math.random() * 1.6, vy: -(5 + Math.random() * 12), ph: Math.random() * 6.28 }; spawnP(p, 60, 2400); return p; });
+  shapes = Array.from({ length: 150 }, (_, i) => {
+    const t = i % 6, p = { t, col: t === 5 ? LEAF_COLS[i % 3] : SHAPE_COLS[i % SHAPE_COLS.length], size: (t === 5 ? 7 : 4) + Math.random() * 7, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 3 };
+    spawnP(p, 120, 2600); return p;
+  });
+  clearFx(); fxDirty = false;
+}
+function renderFx(dt){
+  if (fx.streak < 0.01 && fx.pollen < 0.01 && fx.shapes < 0.01){ if (fxDirty){ clearFx(); fxDirty = false; } return; }
+  fxDirty = true;
+  const c = fxCtx; clearFx();
+  const k = fxDpr * fxM.a; c.setTransform(k, 0, 0, k, fxDpr * fxM.e, fxDpr * fxM.f);
+  if (cam.roll){ c.translate(200, 400); c.rotate(cam.roll * Math.PI / 180); c.translate(-200, -400); }
+  c.lineCap = 'round'; c.lineWidth = 2.2;                       // låst linjetykkelse også her
+  if (fx.streak >= 0.01){
+    const len = 24 + Math.min(1100, Math.abs(G.velZ) * 0.4);
+    c.globalAlpha = fx.streak * 0.85;
+    for (let ci = 0; ci < STREAK_COLS.length; ci++){
+      c.strokeStyle = STREAK_COLS[ci]; c.beginPath();
+      for (let i = ci; i < streaks.length; i += STREAK_COLS.length){
+        const p = streaks[i], d = p.z - cam.z;
+        if (d < NEAR + 5){ spawnP(p, 2000, 2800); continue; }
+        if (d > 3000){ spawnP(p, 80, 1200); continue; }
+        const a = proj(p.x, p.y, p.z), b = proj(p.x, p.y, p.z + len);
+        if (!a || !b) continue;
+        if (a[0] < -600 || a[0] > 1000 || a[1] < -800 || a[1] > 1600){ spawnP(p, 400, 2800); continue; }
+        c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]);
+      }
+      c.stroke();
+    }
+  }
+  if (fx.pollen >= 0.01){
+    const now = G.fxTime !== undefined ? G.fxTime : performance.now() / 1000;
+    c.globalAlpha = fx.pollen * 0.8;
+    for (let ci = 0; ci < MOTE_COLS.length; ci++){
+      c.fillStyle = MOTE_COLS[ci]; c.beginPath();
+      for (let i = ci; i < motes.length; i += MOTE_COLS.length){
+        const p = motes[i];
+        p.y += (p.vy * (1 - fx.fall) + fx.fall * 26) * dt; p.x += Math.sin(now * 0.6 + p.ph) * 6 * dt;
+        const d = p.z - cam.z;
+        if (d < NEAR + 5 || d > 3000){ spawnP(p, 200, 2400); continue; }
+        const a = proj(p.x, p.y, p.z);
+        if (!a || a[0] < -40 || a[0] > 440 || a[1] < -60 || a[1] > 860){ spawnP(p, 200, 2400); continue; }
+        const r = clamp(p.r * a[2], 0.4, 7);
+        c.moveTo(a[0] + r, a[1]); c.arc(a[0], a[1], r, 0, Math.PI * 2);
+      }
+      c.fill();
+    }
+  }
+  if (fx.shapes >= 0.01 && !G.noShapes){
+    c.globalAlpha = fx.shapes;
+    // én setTransform per form (raskere enn save/restore); rull og kamera regnes inn direkte
+    const rr = cam.roll * Math.PI / 180, rc = Math.cos(rr), rs = Math.sin(rr);
+    for (const p of shapes){
+      p.rot += p.vr * dt; p.y -= 6 * dt;
+      const d = p.z - cam.z;
+      if (d < NEAR + 5){ spawnP(p, 1800, 2600); continue; }
+      if (d > 3000){ spawnP(p, 150, 1400); continue; }
+      const a = proj(p.x, p.y, p.z);
+      if (!a || a[0] < -120 || a[0] > 520 || a[1] < -160 || a[1] > 960){ spawnP(p, 300, 2600); continue; }
+      const sx = 200 + (a[0] - 200) * rc - (a[1] - 400) * rs, sy = 400 + (a[0] - 200) * rs + (a[1] - 400) * rc, t = rr + p.rot;
+      c.setTransform(k * Math.cos(t), k * Math.sin(t), -k * Math.sin(t), k * Math.cos(t), k * sx + fxDpr * fxM.e, k * sy + fxDpr * fxM.f);
+      c.fillStyle = c.strokeStyle = p.col;
+      drawShape(c, p.t, clamp(p.size * a[2], 1.2, 80));
+    }
+  }
+  c.globalAlpha = 1;
+}
+
+/* Klokke: outroens lydklokke når lyden går, ellers vanlig tid */
+const growthNow = () => G.clock === 'audio' ? Sound.now() : performance.now() / 1000;
+function startGrowth(out){
+  say('');
+  if (!G.tl) buildGrowth(out.dur);
+  Object.assign(G, { start: out.start, dur: out.dur, clock: out.clock, on: true, idle: false, replayShown: false, lastZ: cam.z, velZ: 0 });
+  console.info(`Vekst startet: klokke=${out.clock}, lengde=${out.dur.toFixed(2)} s`);
+  resetFx();
+}
+function growthTick(dt){
+  if (!G.on) return;
+  const raw = (growthNow() - G.start) * (G.clock === 'perf' ? speed : 1);
+  if (raw > G.dur + 0.3){
+    if (!G.idle){ G.t = G.dur; G.tl.time(G.dur); renderGrowth(dt); G.idle = true; }
+    if (!G.replayShown && raw > G.dur + 3) showReplay();
+    return;
+  }
+  G.t = clamp(raw, 0, G.dur);
+  // På mobil tar filmen over ved 2,0 s (kanna er da ute av bildet, og timelinen er lik)
+  if (V.use && V.ok && G.t >= VIDEO_T0 && G.t < VIDEO_T0 + 2 && vid.readyState >= 2){ startVideo(); return; }
+  G.tl.time(G.t);
+  renderGrowth(dt);
+}
+
+/* ---------- Del 2 som forhåndsrendret film på mobil (video/vekst.mp4, rendres med render.js) ---------- */
+const VIDEO_T0 = 2.0, VIDEO_FPS = 30, vid = $('#growthVideo');
+const V = {
+  use: params.get('video') ? params.get('video') === '1' : true,   // 70vibe: del 2 er alltid film
+  ok: true, on: false, primed: false
+};
+if (MODE === 'render' || MODE === 'still') V.use = false;
+if (V.use){ vid.muted = true; vid.src = 'video/vekst.mp4'; }
+vid.addEventListener('error', () => { V.ok = false; if (V.on) videoFallback(); });
+function placeVideo(){
+  const W = innerWidth, H = innerHeight, s = Math.min(W / 400, H / 800);
+  Object.assign(vid.style, { left: `${(W - 400 * s) / 2 - 60 * s}px`, top: `${(H - 800 * s) / 2 - 70 * s}px`, width: `${520 * s}px`, height: `${940 * s}px` });
+}
+addEventListener('resize', placeVideo); placeVideo();
+function primeVideo(){              // kalles i et klikk: låser opp avspilling og buffring på iOS
+  if (!V.use || V.primed) return;
+  V.primed = true;
+  const p = vid.play();
+  if (p && p.then) p.then(() => { vid.pause(); cueVideo(); }).catch(() => {});
+}
+function cueVideo(){ if (V.use && V.ok){ try { vid.pause(); vid.currentTime = VIDEO_T0; } catch (e) {} } }
+function startVideo(){
+  V.on = true; G.on = false; V.lastVT = -1; V.stallSince = null;
+  vid.playbackRate = 1;
+  if (Math.abs(vid.currentTime - G.t) > 0.05) vid.currentTime = G.t;
+  gsap.set(vid, { autoAlpha: 1 });
+  const p = vid.play(); if (p && p.catch) p.catch(videoFallback);
+  gsap.set('#stage', { visibility: 'hidden' }); clearFx(); fxDirty = false;
+  console.info(`Film tar over ved ${G.t.toFixed(2)} s`);
+}
+function videoFallback(){           // filmen feilet: tilbake til levende kode der vi er
+  V.on = false; V.ok = false;
+  gsap.set(vid, { autoAlpha: 0 }); gsap.set('#stage', { visibility: 'visible' });
+  G.on = true;
+}
+function videoTick(){
+  if (!V.on) return;
+  const t = (growthNow() - G.start) * (G.clock === 'perf' ? speed : 1);
+  if (vid.ended || t >= G.dur - 0.05){ endVideo(); return; }
+  // Vakt: står filmen fast (buffring, dekoder) i over 1 s mens musikken går, tar koden over der vi er
+  if (vid.currentTime !== V.lastVT){ V.lastVT = vid.currentTime; V.stallSince = null; }
+  else if (V.stallSince == null) V.stallSince = t;
+  else if (t - V.stallSince > 1.0){ console.info('Filmen står fast – kode tar over'); videoFallback(); return; }
+  if (!vid.paused && vid.readyState >= 2){
+    const drift = vid.currentTime - t;   // filmtid = vekst-tid
+    if (Math.abs(drift) > 0.5){ vid.currentTime = t; vid.playbackRate = 1; }
+    else vid.playbackRate = Math.abs(drift) > 0.03 ? 1 - clamp(drift * 0.5, -0.1, 0.1) : 1;
+    if (DEBUG && t - (V.logT || 0) > 2){ V.logT = t; console.info(`synk t=${t.toFixed(1)} avvik=${(drift * 1000).toFixed(0)} ms`); }
+  }
+}
+function endVideo(){                // sluttbildet tegnes skarpt i vektor under filmen, så fades filmen ut
+  V.on = false;
+  G.t = G.dur; G.tl.time(G.dur); renderGrowth(0);
+  gsap.set('#stage', { visibility: 'visible' });
+  gsap.to(vid, { autoAlpha: 0, duration: 0.3, ease: EASE, onComplete: () => vid.pause() });
+  G.on = true; G.idle = true;
+  console.info('Film ferdig – sluttbildet er vektor igjen');
+}
+
+/* «Spill igjen» */
+const replayBtn = $('#replayBtn');
+function showReplay(){ G.replayShown = true; gsap.to(replayBtn, { autoAlpha: 1, duration: 1.2, ease: EASE }); }
+replayBtn.addEventListener('click', () => {
+  Sound.unlock();
+  G.on = false;
+  gsap.to(replayBtn, { autoAlpha: 0, duration: 0.4, ease: EASE });
+  gsap.to(['#stage', '#fx'], { opacity: 0, duration: 0.7, ease: EASE, onComplete(){
+    cueVideo(); gsap.set(vid, { autoAlpha: 0 }); gsap.set('#stage', { visibility: 'visible' });
+    G.t = 0; G.tl.time(0); vineDrive(); resetFx(); renderGrowth(0);
+    startGrowth(Sound.replay());
+    gsap.to(['#stage', '#fx'], { opacity: 1, duration: 1.0, ease: EASE });
+  } });
+});
+
+/* Utvikling: hopp rett til tilstanden etter vanningen */
+function enterGrowthState(){
+  $('#intro').style.display = 'none';
+  gsap.set('#bouquet', { y: 0, scale: 1, visibility: 'visible' });
+  gsap.set(['#vaseBack', '#vaseFront', '#water'], { y: 0, visibility: 'visible' });
+  Object.assign(cam, CAM_VASE); renderCam();
+  fill = 1; filled = true; drawWater(false);
+}
+
+/* ---------- 70vibe: regnbuesving på startskjermen, som på VHS-coveret ---------- */
+function offsetPts(pts, off){
+  return pts.map((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [p[0] - dy / l * off, p[1] + dx / l * off]; });
+}
+(function drawSwoosh(){
+  const sv = $('#swoosh'), paths = [];
+  [[[-70, 210], [60, 150], [200, 118], [320, 150], [372, 240], [330, 305], [258, 292], [246, 228], [312, 196], [402, 226], [480, 300]],
+   [[-80, 690], [40, 610], [150, 600], [228, 660], [250, 760], [230, 880]]].forEach(pts => {
+    RAINBOW.forEach((col, k) => paths.push(el('path', { d: smooth(offsetPts(pts, (k - 3.5) * 7.2)), fill: 'none', stroke: col, 'stroke-width': 5.4, 'stroke-linecap': 'butt', 'stroke-linejoin': 'round' }, sv)));
+  });
+  if (MODE !== 'render') gsap.fromTo(paths, { drawSVG: '0%' }, { drawSVG: '100%', duration: 2.4, stagger: 0.05, ease: EASE, delay: 0.2 });
+})();
+
+/* ---------- Start ---------- */
+Sound.init();
+const openBtn = $('#openBtn');
+openBtn.addEventListener('click', async () => {
+  if (openBtn.disabled) return;
+  openBtn.disabled = true;
+  Sound.unlock();
+  openBtn.setAttribute('aria-busy', 'true');
+  Sound.startIntro();
+  primeVideo();
+  gsap.to('#intro', { autoAlpha: 0, duration: 0.9, ease: EASE });
+  playBouquet().delay(0.5);
+});
+
+if (MODE === 'still'){                         // sluttbildet = vekst-timelinen på siste frame
+  enterGrowthState(); buildGrowth(OUTRO_FALLBACK); G.t = OUTRO_FALLBACK; G.tl.time(OUTRO_FALLBACK); vineDrive(); renderGrowth(0);
+} else if (MODE === 'render'){                 // render.js: én frame om gangen, deterministisk, uten korn
+  enterGrowthState(); buildGrowth(OUTRO_FALLBACK);
+  ['#wear', '#grain', '#hint', '#replayBtn', '#intro'].forEach(s => { $(s).style.display = 'none'; });
+  svg.setAttribute('viewBox', '-60 -70 520 940'); sizeFx();
+  gsap.ticker.sleep();
+  resetFx(); G.lastZ = cam.z;
+  window.__frame = t => {
+    const dt = 1 / VIDEO_FPS;
+    wavePhase += dt * 2; drawWater(false);
+    G.t = t; G.fxTime = t; G.tl.time(t); renderGrowth(t === 0 ? 0 : dt);
+    return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  };
+  window.__dur = OUTRO_FALLBACK;
+} else if (MODE === 'grow'){                   // ?scene=grow&t=24 starter veksten ved 24 s
+  enterGrowthState(); startSway();
+  const t0 = parseFloat(params.get('t')) || 0;
+  startGrowth({ start: performance.now() / 1000 - t0 / speed, dur: OUTRO_FALLBACK, clock: 'perf' });
+} else if (MODE){ gsap.set('#intro', { autoAlpha: 0 }); playBouquet(); }
+})();
+</script>
+</body>
+</html>

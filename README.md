@@ -6,6 +6,8 @@ En digital blomsterbukett til Torgeir Waldemar og Abildsø Spelemannslags plater
 
 **Se den:** https://partyfriedman.github.io/blomster-til-torgeir/
 
+**Alternativ versjon (70vibe, gamle VHS- og kassettcovere):** https://partyfriedman.github.io/blomster-til-torgeir/70vibe/. Kildekoden ligger på branchen `70vibe`, og mappa `70vibe/` er en publisert kopi med egen film.
+
 ## Innhold
 
 - `index.html` – selve siden (SVG, Canvas og GSAP)
