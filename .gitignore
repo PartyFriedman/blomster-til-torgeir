@@ -1,0 +1,9 @@
+# Inspirasjonsbilder er andres verk – bare lokalt
+images/look-and-feel/
+
+# Byggevariant for Claude-artifact (lages av build.py)
+dist/artifact.html
+
+__pycache__/
+.DS_Store
+Thumbs.db
